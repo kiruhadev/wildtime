@@ -162,13 +162,18 @@ app.post("/deposit", async (req, res) => {
 /* =========================
    TON CONNECT MANIFEST
    ========================= */
-   app.get("/tonconnect-manifest.json", (req, res) => {
+ 
+  app.get("/tonconnect-manifest.json", (req, res) => {
     res.json({
       url: "https://wildtime-1.onrender.com",
-      name: "WildTime",
-      iconUrl: "https://wildtime-1.onrender.com/images/app-icon.png", // замени на своё лого
+      name: "Wild Time",
+      iconUrl: "https://wildtime-1.onrender.com/icons/app-icon.png",
+      termsOfUseUrl: "https://wildtime-1.onrender.com/terms",
+      privacyPolicyUrl: "https://wildtime-1.onrender.com/privacy",
+      manifestVersion: 1
     });
   });
+  
   
 
 
