@@ -135,7 +135,8 @@ app.post("/notify/deposit", async (req, res) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: `✅Success! ${num} TON added to your Wild Time balance! `
+          text: `💰 Success! ${num} TON\n added to your Wild Time balance! 🎉`
+
         })
       });
     }
@@ -181,6 +182,41 @@ app.post("/deposit", async (req, res) => {
 /* ========= SPA index ========= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+// server.js — добавить ПЕРЕД app.listen(...)
+import fetch from "node-fetch"; // если ещё не импортирован
+
+app.get("/api/tg/photo/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const token  = process.env.BOT_TOKEN;
+    if (!token) return res.status(500).send("BOT_TOKEN not set");
+    // 1) список фоток
+    const p1 = await fetch(`https://api.telegram.org/bot${token}/getUserProfilePhotos?user_id=${userId}&limit=1`);
+    const j1 = await p1.json();
+    const photos = j1?.result?.photos?.[0];
+    if (!photos) return res.status(404).send("no photo");
+
+    // берём самый большой размер
+    const fileId = photos[photos.length - 1].file_id;
+
+    // 2) получаем file_path
+    const p2 = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+    const j2 = await p2.json();
+    const path = j2?.result?.file_path;
+    if (!path) return res.status(404).send("no file path");
+
+    // 3) проксируем файл
+    const fileResp = await fetch(`https://api.telegram.org/file/bot${token}/${path}`);
+    if (!fileResp.ok) return res.status(502).send("tg file fetch failed");
+
+    res.setHeader("Cache-Control", "public, max-age=3600, immutable");
+    res.setHeader("Content-Type", fileResp.headers.get("content-type") || "image/jpeg");
+    fileResp.body.pipe(res);
+  } catch (e) {
+    console.error("photo proxy error:", e);
+    res.status(500).send("error");
+  }
 });
 
 /* ========= START ========= */
