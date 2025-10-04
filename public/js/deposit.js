@@ -119,54 +119,47 @@ const RECEIVER_TON = "UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // тв
     applyConnectedUI(connected);
   });
 
-
-
-
-  
   // Кнопка "Deposit Now"
-depositB?.addEventListener("click", async () => {
-  if (!isConnected()) {
-    return alert("Please connect your TON wallet first.");
-  }
+  depositB?.addEventListener("click", async () => {
+    if (!isConnected()) {
+      // на всякий случай – вдруг пользователь отключил кошелёк
+      return alert("Please connect your TON wallet first.");
+    }
 
-  const amtRaw = (amountI?.value || "").trim().replace(",", ".");
-  const amount = Number(amtRaw);
-  if (!Number.isFinite(amount) || amount < MIN_DEPOSIT) {
-    return alert(`Minimum deposit is ${MIN_DEPOSIT} TON`);
-  }
+    const amtRaw = (amountI?.value || "").trim().replace(",", ".");
+    const amount = Number(amtRaw);
+    if (!Number.isFinite(amount) || amount < MIN_DEPOSIT) {
+      return alert(`Minimum deposit is ${MIN_DEPOSIT} TON`);
+    }
 
-  if (!RECEIVER_TON) {
-    return alert("Receiver TON address is not set");
-  }
+    // initData из Telegram WebApp
+    const initData = (window.Telegram && window.Telegram.WebApp)
+      ? window.Telegram.WebApp.initData
+      : "";
 
-  try {
-    // 1) Отправляем транзакцию в TON-кошелёк через TonConnect
-    const nanotons = Math.round(amount * 1e9).toString();
-    await tc.sendTransaction({
-      validUntil: Math.floor(Date.now() / 1000) + 300, // 5 минут
-      messages: [{ address: RECEIVER_TON, amount: nanotons }]
-    });
+    try {
+      // POST на бэкенд
+      const res = await fetch("/deposit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, initData })
+      });
 
-    // 2) После успешного подтверждения — уведомим твой бэкенд/бота
-    const initData = window.Telegram?.WebApp?.initData || "";
-    const res = await fetch("/deposit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, initData })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data?.error || "Deposit failed");
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data?.error || "Deposit failed");
+      }
 
-    // UX
-    amountI.value = "";
-    closeSheet();
-    alert(`✅ Sent ${amount} TON`);
-  } catch (e) {
-    console.error(e);
-    alert("❌ Transaction cancelled or failed");
-  }
-});
+      // UX: очистим поле и закроем шит
+      if (amountI) amountI.value = "";
+      closeSheet();
 
+      alert(`✅ Deposit request sent: ${amount} TON`);
+    } catch (e) {
+      console.error(e);
+      alert("❌ Deposit failed. Try again later.");
+    }
+  });
 
   /* ================================
    *  Small QoL helpers (optional)
@@ -189,4 +182,7 @@ depositB?.addEventListener("click", async () => {
     close: closeSheet,
     tc
   };
+ //ОТКРЫВАЛКА
+  document.getElementById('tonPill')?.addEventListener('click', openSheet);
+
 })();

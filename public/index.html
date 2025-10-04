@@ -43,12 +43,15 @@
     
       <!-- TON баланс (именно ЭТА пилюля должна открывать депозит) -->
       <div class="balance">
-        <button id="tonPill" class="pill pill--ton" type="button" aria-label="TON balance">
+        <button id="tonPill" class="pill pill--ton" type="button" aria-label="TON balance"
+        data-open-deposit>
           <img src="/icons/ton.svg" alt="TON" class="pill-icon" />
           <span id="tonAmount">0.00</span>
           <img src="/icons/plus.svg" alt="Add" class="pill-plus-icon" />
         </button>
       </div>
+       
+
     </header>
     
     
@@ -230,6 +233,9 @@
   
           <!--   SCRIPTS   --> 
   <script src="/js/app.js" defer></script>
+
+   <!-- Твой JS подключения шита -->
+   <script src="/js/deposit.js" defer></script>
   
 
   
@@ -280,9 +286,7 @@
    
    
    
-    <!-- Твой JS подключения шита -->
-    <script src="/js/deposit.js" defer></script>
-
+  
 
     <!-- AUTH -->
     <script src="/js/auth.js" defer></script>
