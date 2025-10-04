@@ -167,7 +167,7 @@ app.post("/deposit", async (req, res) => {
     res.json({
       url: "https://wildtime-1.onrender.com",
       name: "Wild Time",
-      iconUrl: "https://wildtime-1.onrender.com/icons/app-icon.png",
+      iconUrl: "https://wildtime-1.onrender.com/icons/app-icon.jpg",
       termsOfUseUrl: "https://wildtime-1.onrender.com/terms",
       privacyPolicyUrl: "https://wildtime-1.onrender.com/privacy",
       manifestVersion: 1
