@@ -163,7 +163,7 @@ app.post("/deposit", async (req, res) => {
    TON CONNECT MANIFEST
    ========================= */
  
-  app.get("/tonconnect-manifest-v2.json", (req, res) => {
+  app.get("/tonconnect-manifest.json", (req, res) => {
     res.json({
       url: "https://wildtime-1.onrender.com",
       name: "Wild Time",
@@ -186,6 +186,12 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+// ==== SERVE TONCONNECT MANIFEST ====
+app.get('/tonconnect-manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tonconnect-manifest.json'));
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server on http://localhost:${PORT}`);
 });

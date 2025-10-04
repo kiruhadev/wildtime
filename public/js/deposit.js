@@ -57,7 +57,7 @@
   function ensureTonUI() {
     if (!tonUI && window.TON_CONNECT_UI) {
       tonUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: '/tonconnect-manifest-v2.json'
+        manifestUrl: 'https://wildtime-1.onrender.com/tonconnect-manifest.json?v='
       });
     }
     return tonUI;
