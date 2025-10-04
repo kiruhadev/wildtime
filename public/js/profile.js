@@ -118,5 +118,6 @@
         tc.onStatusChange?.(w => renderWallet(w?.account?.address || ""));
       }
     })();
+    
   })();
   
