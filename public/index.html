@@ -211,48 +211,23 @@
     <!-- ===== PROFILE PAGE ===== -->
     <main id="profilePage" class="page">
       <section class="profile-card">
-        <div class="profile-header">
-          <img id="profileAvatar" class="avatar" src="/images/avatar-default.png" alt="">
-          <div>
-            <div id="profileName" class="name">Guest</div>
-            <div id="profileHandle" class="sub">@guest</div>
+        <img id="profileAvatar" class="profile-ava" alt="" />
+        <h2 id="profileName" class="profile-name">User</h2>
+        <p id="profileHandle" class="profile-handle">—</p>
+    
+        <button id="walletPill" class="wallet-pill" type="button">
+          <img src="/icons/ton.svg" class="icon-16" alt="">
+          <span id="profileWallet">Not connected</span>
+          <svg class="chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg>
+        </button>
+    
+        <div id="walletDetails" class="wallet-details" hidden>
+          <div id="walletFull" class="wallet-full mono">—</div>
+          <div class="row">
+            <button id="walletCopy" class="btn">Copy</button>
+            <button id="profileDisconnect" class="btn btn-danger">Disconnect</button>
           </div>
         </div>
-    
-        <div class="profile-stats">
-          <div class="stat">
-            <div class="label">Spins</div>
-            <div class="val" id="statSpins">0</div>
-          </div>
-          <div class="stat">
-            <div class="label">Wins</div>
-            <div class="val" id="statWins">0</div>
-          </div>
-          <div class="stat">
-            <div class="label">RTP</div>
-            <div class="val" id="statRtp">—</div>
-          </div>
-        </div>
-    
-        <!-- PROFILE: wallet row -->
-<div class="wallet-row">
-  <img id="profileAvatar" class="wallet-ava" alt="" />
-  <button id="walletPill" class="wallet-pill" type="button" aria-label="Wallet">
-    <img src="/icons/ton.svg" class="wallet-pill__icon" alt="">
-    <span id="profileWallet" class="wallet-pill__text">Not connected</span>
-    <span class="wallet-pill__chev" aria-hidden="true"></span>
-  </button>
-</div>
-
-<!-- hidden details panel -->
-<div id="walletDetails" class="wallet-details" hidden>
-  <div class="wallet-details__line">
-    <span id="walletFull" class="wallet-details__addr">—</span>
-    <button id="walletCopy" class="wallet-copy" type="button">Copy</button>
-  </div>
-  <button id="profileDisconnect" class="wallet-disconnect" type="button">Disconnect</button>
-</div>
-
       </section>
     </main>
     

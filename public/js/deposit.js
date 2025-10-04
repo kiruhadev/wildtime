@@ -4,6 +4,35 @@
    - Кнопка Deposit активна только при подключённом кошельке и сумме ≥ 0.1
 */
 
+
+// public/js/deposit.js
+(() => {
+  const MANIFEST_URL = "/tonconnect-manifest.json";
+
+  // === user-scoped storage (у каждого пользователя своя сессия) ===
+  const tgUserId =
+    window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "guest";
+
+  const storage = {
+    getItem: (k) => localStorage.getItem(`${tgUserId}:tc:${k}`),
+    setItem: (k, v) => localStorage.setItem(`${tgUserId}:tc:${k}`, v),
+    removeItem: (k) => localStorage.removeItem(`${tgUserId}:tc:${k}`)
+  };
+
+  const tc = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: MANIFEST_URL,
+    uiPreferences: { theme: "SYSTEM" },
+    storage,
+    restoreConnection: true
+  });
+
+  // отдаём TonConnect остальным модулям
+  window.__wtTonConnect = tc;
+  window.dispatchEvent(new Event("wt-tc-ready"));
+
+  // --- остальной твой код депозита остаётся без изменений ---
+})();
+
 const MIN_DEPOSIT_TON = 0.1;
 const MANIFEST_URL    = `${location.origin}/tonconnect-manifest.json?v=${Date.now()}`;
 const RECEIVER_TON    = "RECEIVER_TON=UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // ← адрес проекта (EQ...);
@@ -169,3 +198,5 @@ window.addEventListener("focus", () => {
   setTimeout(() => sheet?.classList.remove("sheet--below"), 300);
   renderUI();
 });
+
+
