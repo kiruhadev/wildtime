@@ -116,15 +116,19 @@ connectBtn?.addEventListener("click", async () => {
 });
 
 /* === Send deposit === */
+// если тестируешь 0.1 — оставь 0.1, если вернёшься к 0.5 — поставь 0.5
+
+
 depositBtn?.addEventListener("click", async () => {
   const amt = normalizeAmount(amountInput.value);
 
+  // без кошелька не даём депать — открываем модалку TonConnect
   if (!wallet) {
-    // на всякий случай: если вдруг не подключены — открываем модалку
     try { await tc.openModal(); } catch {}
     return;
   }
 
+  // валидация суммы
   if (!(amt >= MIN_DEPOSIT_TON)) {
     hintEl.textContent = `Minimum deposit is ${MIN_DEPOSIT_TON} TON`;
     renderUI();
@@ -134,18 +138,44 @@ depositBtn?.addEventListener("click", async () => {
   try {
     depositBtn.disabled = true;
 
+    // отправляем запрос на перевод в кошелёк
     await tc.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 60,
       messages: [{ address: RECEIVER_TON, amount: toNano(amt) }],
     });
 
+    // 1) подсказка + закрыть шит
     hintEl.textContent = "✅ Request sent. Confirm in your wallet";
+    setTimeout(() => closeSheet(), 600);
+
+    // 2) локально обновим цифру в пилюле TON
+    const tonLabel = document.getElementById("tonAmount");
+    const prev = parseFloat(tonLabel?.textContent || "0") || 0;
+    const next = prev + amt;
+    if (tonLabel) tonLabel.textContent = next.toFixed(2);
+
+    // 3) уведомим сервер (он пошлёт сообщение в чат бота)
+    try {
+      await fetch("/notify/deposit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amt,
+          initData: window.Telegram?.WebApp?.initData || ""
+        })
+      });
+    } catch (e) {
+      console.warn("notify/deposit failed:", e);
+    }
+
+    // очистим поле
     amountInput.value = "";
   } catch (err) {
     console.error("[deposit] sendTransaction error:", err);
     hintEl.textContent = "❌ Transaction canceled or failed";
   } finally {
     renderUI();
+    depositBtn.disabled = false;
   }
 });
 
