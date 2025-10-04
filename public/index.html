@@ -8,21 +8,20 @@
     <!-- если используешь CDN -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script>
-    const tc = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: 'https://wildtime-1.onrender.com/tonconnect-manifest.json'
-    });
-    manifestUrl: 'https://wildtime-1.onrender.com/tonconnect-manifest.json?v=2'
-
-
-    // пример кнопки «Connect wallet»
-    document.getElementById('btnConnectWallet').addEventListener('click', async () => {
+    // кэш-бастер, чтобы Telegram/кошелёк точно подхватили свежий манифест
+    const MANIFEST_URL = 'https://wildtime-1.onrender.com/tonconnect-manifest.json?v=' + Date.now();
+    window.tcUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: MANIFEST_URL });
+  
+    // пример: кнопка "Connect wallet"
+    document.getElementById('btnConnectWallet')?.addEventListener('click', async () => {
       try {
-        await tc.openModal(); // или tc.connectWallet()
+        await window.tcUI.openModal(); // или tcUI.connectWallet()
       } catch (e) {
-        console.error(e);
+        console.error('TonConnect error:', e);
       }
     });
   </script>
+  
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
