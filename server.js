@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
+import fetch from  "node-fetch";
 
 dotenv.config();
 
@@ -183,6 +184,8 @@ app.post("/deposit", async (req, res) => {
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+
 // server.js — добавить ПЕРЕД app.listen(...)
 import fetch from "node-fetch"; // если ещё не импортирован
 
