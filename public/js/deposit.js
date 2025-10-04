@@ -2,7 +2,7 @@
 
 /* 1) Константы */
 const MANIFEST_URL = `${location.origin}/tonconnect-manifest.json?v=${Date.now()}`;
-const RECEIVER_TON = "PASTE_YOUR_TON_ADDRESS_HERE"; // <— вставь адрес проекта (EQ...)
+const RECEIVER_TON = "UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // <— вставь адрес проекта (EQ...)
 
 /* 2) DOM */
 const sheet          = document.getElementById("depositSheet");
