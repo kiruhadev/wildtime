@@ -9,7 +9,7 @@
 /* === CONFIG === */
 const MIN_DEPOSIT_TON = 0.1;                         // ← минимум на тест
 const MANIFEST_URL    = `${location.origin}/tonconnect-manifest.json?v=${Date.now()}`;
-const RECEIVER_TON    = "PASTE_YOUR_TON_ADDRESS_HERE"; // ← вставь адрес проекта (EQ...)
+const RECEIVER_TON    = "UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // ← вставь адрес проекта (EQ...)
 
 /* === DOM === */
 const sheet       = document.getElementById("depositSheet");
