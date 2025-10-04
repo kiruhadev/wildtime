@@ -1,52 +1,75 @@
 // public/js/profile.js
 (() => {
-    // ---------- DOM ----------
     const $ = (id) => document.getElementById(id);
     const on = (el, ev, fn, opt) => el && el.addEventListener(ev, fn, opt);
   
-    const userPill   = $("userPill");
-    const avaBig     = $("profileAvatar");
-    const nameEl     = $("profileName");
-    const handleEl   = $("profileHandle");
+    // ===== DOM
+    const userPill       = $("userPill");
+    const profilePage    = $("profilePage");
+    const avaBig         = $("profileAvatar");
+    const nameEl         = $("profileName");
+    const handleEl       = $("profileHandle");
   
-    const walletPill    = $("walletPill");     // кнопка-капсула
-    const walletShortEl = $("profileWallet");  // короткий UQxx…zz
-    const walletDetails = $("walletDetails");  // раскрывашка
-    const walletFullEl  = $("walletFull");     // полный адрес
-    const walletCopyBtn = $("walletCopy");
-    const disconnectBtn = $("profileDisconnect");
+    const walletPill     = $("walletPill");
+    const walletShortEl  = $("profileWallet");
+    const walletDetails  = $("walletDetails");
+    const walletFullEl   = $("walletFull");
+    const walletCopyBtn  = $("walletCopy");
+    const disconnectBtn  = $("profileDisconnect");
   
-    // ---------- Аватар (без мигания) ----------
-    const FALLBACK_AVA =
-      'data:image/svg+xml;utf8,' + encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 64 64">
-          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#2b2f3a"/><stop offset="1" stop-color="#1b1f28"/>
-          </linearGradient></defs>
-          <rect width="64" height="64" rx="18" fill="url(#g)"/>
-          <circle cx="32" cy="23" r="12" fill="#8ea1c9"/>
-          <rect x="12" y="38" width="40" height="16" rx="8" fill="#5f7298"/>
-        </svg>`
-      );
+    // ===== Аватар: фолбэк-инициалы (dataURL, без сетевых 404)
+    function makeInitialsAvatar(name = "User", size = 112) {
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      const ctx = c.getContext("2d");
   
-    function setAvatarOnce(img, url) {
+      // фон-градиент
+      const g = ctx.createLinearGradient(0,0,size,size);
+      g.addColorStop(0, "#2b2f3a");
+      g.addColorStop(1, "#1b1f28");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,size,size);
+  
+      // инициалы
+      const initials = name.split(" ")
+        .map(s => s.trim()[0]?.toUpperCase())
+        .filter(Boolean)
+        .slice(0,2)
+        .join("") || "U";
+  
+      ctx.fillStyle = "#8ea1c9";
+      ctx.beginPath();
+      ctx.arc(size/2, size/2 - 8, size/3, 0, Math.PI*2);
+      ctx.fill();
+  
+      ctx.fillStyle = "#fff";
+      ctx.font = `${Math.floor(size*0.32)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(initials, size/2, size/2 - 8);
+  
+      return c.toDataURL("image/png");
+    }
+  
+    function setAvatar(img, url, name) {
       if (!img) return;
-      const want = url || FALLBACK_AVA;
+      const fallback = makeInitialsAvatar(name);
+      const want = url || fallback;
       if (img.dataset.currentSrc === want) return;
       img.dataset.currentSrc = want;
       img.referrerPolicy = "no-referrer";
       img.crossOrigin = "anonymous";
       img.onerror = () => {
         img.onerror = null;
-        if (img.src !== FALLBACK_AVA) {
-          img.dataset.currentSrc = FALLBACK_AVA;
-          img.src = FALLBACK_AVA;
+        if (img.src !== fallback) {
+          img.dataset.currentSrc = fallback;
+          img.src = fallback;
         }
       };
       img.src = want;
     }
   
-    // ---------- Адрес: raw -> friendly (UQ/EQ) ----------
+    // ===== Адрес: raw → friendly (UQ/EQ)
     function crc16Xmodem(bytes){
       let crc = 0xffff;
       for (let b of bytes){
@@ -76,44 +99,44 @@
       !addr ? "" : (/^[UE]Q/.test(addr) ? addr : rawToFriendly(addr, opts));
     const shortAddr = (addr) => addr ? `${addr.slice(0,4)}…${addr.slice(-4)}` : "Not connected";
   
-    // ---------- Telegram user -> имя/аватар ----------
+    // ===== Telegram user → имя/handle/аватар
     const tg  = window.Telegram?.WebApp;
     const tgu = tg?.initDataUnsafe?.user || null;
     const fullName = (u) => {
       if (!u) return "User";
       const fn = u.first_name || "", ln = u.last_name || "";
-      const n = `${fn} ${ln}`.trim();
+      const n  = `${fn} ${ln}`.trim();
       return n || (u.username ? `@${u.username}` : "User");
     };
     const atHandle = (u) => (u?.username ? `@${u.username}` : "—");
   
-    try {
-      setAvatarOnce(avaBig, tgu?.photo_url || FALLBACK_AVA);
-      if (nameEl)   nameEl.textContent   = fullName(tgu);
-      if (handleEl) handleEl.textContent = atHandle(tgu);
-    } catch {}
+    const dispName = fullName(tgu);
+    if (nameEl)   nameEl.textContent   = dispName;
+    if (handleEl) handleEl.textContent = atHandle(tgu);
   
-    // переход на профиль по клику на верхнюю «пилюлю» слева
-    on(userPill, "click", () => {
+    setAvatar(avaBig, tgu?.photo_url, dispName);
+  
+    // ===== Открыть профиль по клику на левую пилюлю
+    on($("userPill"), "click", () => {
       document.querySelectorAll(".page").forEach(p => p.classList.remove("page-active"));
-      document.getElementById("profilePage")?.classList.add("page-active");
+      profilePage?.classList.add("page-active");
       document.querySelectorAll(".bottom-nav .nav-item").forEach(i => i.classList.remove("active"));
       document.querySelector('.bottom-nav .nav-item[data-target="profilePage"]')?.classList.add("active");
     }, { passive:true });
   
-    // ---------- TonConnect: ждём из deposit.js ----------
+    // ===== TonConnect
     const waitForTC = () =>
       window.__wtTonConnect
         ? Promise.resolve(window.__wtTonConnect)
         : new Promise(res => window.addEventListener("wt-tc-ready", () => res(window.__wtTonConnect), { once:true }));
   
-    // аккуратное обновление UI
     let lastAddr = "";
-    function renderWallet(addrRaw) {
+    function renderWallet(addrRaw){
       const addr = ensureFriendly(addrRaw, { bounceable:true, testOnly:false });
       if (addr === lastAddr) return; lastAddr = addr;
       if (walletShortEl) walletShortEl.textContent = shortAddr(addr);
       if (walletFullEl)  walletFullEl.textContent  = addr || "—";
+      walletPill?.classList.toggle("disabled", !addr);
     }
   
     // раскрывашка/копия/дисконнект
@@ -139,9 +162,7 @@
   
     (async () => {
       const tc = await waitForTC();
-      // первичное состояние
       renderWallet(tc?.wallet?.account?.address || "");
-      // единичная подписка
       if (!tc.__wtProfileBound) {
         tc.__wtProfileBound = true;
         tc.onStatusChange?.(w => renderWallet(w?.account?.address || ""));
