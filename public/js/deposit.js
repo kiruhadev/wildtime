@@ -57,7 +57,7 @@
   function ensureTonUI() {
     if (!tonUI && window.TON_CONNECT_UI) {
       tonUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: '/tonconnect-manifest.json'
+        manifestUrl: '/tonconnect-manifest-v2.json'
       });
     }
     return tonUI;

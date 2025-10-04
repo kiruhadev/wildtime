@@ -163,7 +163,7 @@ app.post("/deposit", async (req, res) => {
    TON CONNECT MANIFEST
    ========================= */
  
-  app.get("/tonconnect-manifest.json", (req, res) => {
+  app.get("/tonconnect-manifest-v2.json", (req, res) => {
     res.json({
       url: "https://wildtime-1.onrender.com",
       name: "Wild Time",

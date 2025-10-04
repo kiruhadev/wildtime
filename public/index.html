@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script>
     // кэш-бастер, чтобы Telegram/кошелёк точно подхватили свежий манифест
-    const MANIFEST_URL = 'https://wildtime-1.onrender.com/tonconnect-manifest.json?v=' + Date.now();
+    const MANIFEST_URL = 'https://wildtime-1.onrender.com/tonconnect-manifest-v2.json?v=' + Date.now();
     window.tcUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: MANIFEST_URL });
   
     // пример: кнопка "Connect wallet"
