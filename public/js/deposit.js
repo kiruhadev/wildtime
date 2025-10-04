@@ -1,15 +1,12 @@
 /* public/js/deposit.js
    Wild Time — Deposit (MIN 0.1 TON)
-   - TonConnect UI v2
-   - connect-gate: Deposit доступен только после подключения
-   - amount input: поддержка , и . ; минимум 0.1 TON
-   - overlay fix: на время TonConnect модалки опускаем наш sheet
+   Фикс: restoreConnection:false — всегда требуем явное подключение кошелька
 */
 
 /* === CONFIG === */
-const MIN_DEPOSIT_TON = 0.1;                         // ← минимум на тест
+const MIN_DEPOSIT_TON = 0.1;
 const MANIFEST_URL    = `${location.origin}/tonconnect-manifest.json?v=${Date.now()}`;
-const RECEIVER_TON    = "UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // ← вставь адрес проекта (EQ...)
+const RECEIVER_TON    = "PASTE_YOUR_TON_ADDRESS_HERE"; // ← поставь адрес проекта (EQ...)
 
 /* === DOM === */
 const sheet       = document.getElementById("depositSheet");
@@ -22,12 +19,13 @@ const hintEl      = document.getElementById("depHint");
 const connectBtn  = document.getElementById("btnConnectTon");
 const depositBtn  = document.getElementById("btnDepositNow");
 
-const tonPill     = document.getElementById("tonPill"); // кнопка-пилюля в топбаре
+const tonPill     = document.getElementById("tonPill");
 
-/* === TonConnect UI === */
+/* === TonConnect UI (без авто-восстановления!) === */
 const tc = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: MANIFEST_URL,
   uiPreferences: { theme: "SYSTEM" },
+  restoreConnection: false    // <— ключевая строка
 });
 
 let wallet = null;
@@ -35,17 +33,13 @@ let wallet = null;
 /* === Utils === */
 function normalizeAmount(str) {
   if (!str) return NaN;
-  // заменяем запятую на точку и оставляем только цифры и единственную точку
   let s = str.replace(",", ".").replace(/[^\d.]/g, "");
-  // если несколько точек — оставим только первую
   const firstDot = s.indexOf(".");
   if (firstDot !== -1) s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, "");
   const n = parseFloat(s);
   return Number.isFinite(n) ? n : NaN;
 }
-function toNano(num) {
-  return BigInt(Math.round(num * 1e9)).toString();
-}
+function toNano(num) { return BigInt(Math.round(num * 1e9)).toString(); }
 function isAmountOk() {
   const n = normalizeAmount(amountInput?.value || "");
   return Number.isFinite(n) && n >= MIN_DEPOSIT_TON;
@@ -54,15 +48,9 @@ function isAmountOk() {
 /* === UI state === */
 function renderUI() {
   const connected = !!wallet;
-
-  // показать/скрыть Connect; выровнять кнопки
-  if (connectBtn) connectBtn.style.display = connected ? "none" : "";
-  if (actionsWrap) actionsWrap.classList.toggle("single", connected);
-
-  // кнопка депозита активна только если подключён кошелёк и сумма ок
+  if (connectBtn) connectBtn.style.display = connected ? "none" : "";   // показываем коннект только до подключения
+  if (actionsWrap) actionsWrap.classList.toggle("single", connected);   // одна кнопка по центру, если подключены
   depositBtn.disabled = !(connected && isAmountOk());
-
-  // подсказка
   hintEl.textContent = connected
     ? "Enter amount and confirm in your wallet"
     : "Connect your TON wallet first";
@@ -71,14 +59,11 @@ function renderUI() {
 /* === Sheet open/close === */
 function openSheet() {
   if (!sheet) return;
-  // плейсхолдер под минимум (0.1)
   amountInput?.setAttribute("placeholder", String(MIN_DEPOSIT_TON));
   sheet.classList.add("sheet--open");
   renderUI();
 }
-function closeSheet() {
-  sheet?.classList.remove("sheet--open");
-}
+function closeSheet() { sheet?.classList.remove("sheet--open"); }
 
 /* === Events: open/close === */
 tonPill?.addEventListener("click", openSheet);
@@ -88,9 +73,7 @@ closeBtn?.addEventListener("click", closeSheet);
 /* === Amount input handling === */
 amountInput?.addEventListener("input", () => {
   const caret = amountInput.selectionStart;
-  // мягкая чистка: запятая → точка; лишние символы убираем
   amountInput.value = amountInput.value.replace(",", ".").replace(/[^\d.]/g, "");
-  // фикс двойных точек:
   const firstDot = amountInput.value.indexOf(".");
   if (firstDot !== -1) {
     amountInput.value =
@@ -104,31 +87,26 @@ amountInput?.addEventListener("input", () => {
 /* === Connect wallet === */
 connectBtn?.addEventListener("click", async () => {
   try {
-    // чтобы модалка TonConnect была поверх — опускаем наш sheet
+    // чтобы TonConnect модалка была поверх — временно опустим наш sheet
     sheet?.classList.add("sheet--below");
     await tc.openModal();
   } catch (err) {
     console.error("[deposit] openModal error:", err);
   } finally {
-    // вернём слой спустя миг (если просто закрыли модалку)
     setTimeout(() => sheet?.classList.remove("sheet--below"), 300);
   }
 });
 
 /* === Send deposit === */
-// если тестируешь 0.1 — оставь 0.1, если вернёшься к 0.5 — поставь 0.5
-
-
 depositBtn?.addEventListener("click", async () => {
   const amt = normalizeAmount(amountInput.value);
 
-  // без кошелька не даём депать — открываем модалку TonConnect
   if (!wallet) {
+    // Если вдруг не подключены — сначала открываем модалку
     try { await tc.openModal(); } catch {}
     return;
   }
 
-  // валидация суммы
   if (!(amt >= MIN_DEPOSIT_TON)) {
     hintEl.textContent = `Minimum deposit is ${MIN_DEPOSIT_TON} TON`;
     renderUI();
@@ -138,37 +116,17 @@ depositBtn?.addEventListener("click", async () => {
   try {
     depositBtn.disabled = true;
 
-    // отправляем запрос на перевод в кошелёк
     await tc.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 60,
-      messages: [{ address: RECEIVER_TON, amount: toNano(amt) }],
+      messages: [{ address: RECEIVER_TON, amount: toNano(amt) }]
     });
 
-    // 1) подсказка + закрыть шит
     hintEl.textContent = "✅ Request sent. Confirm in your wallet";
-    setTimeout(() => closeSheet(), 600);
+    // (опционально) закрыть шит и обновить пилюлю TON на экране:
+    // setTimeout(() => closeSheet(), 600);
+    // const tonLabel = document.getElementById("tonAmount");
+    // if (tonLabel) tonLabel.textContent = (parseFloat(tonLabel.textContent||"0")+amt).toFixed(2);
 
-    // 2) локально обновим цифру в пилюле TON
-    const tonLabel = document.getElementById("tonAmount");
-    const prev = parseFloat(tonLabel?.textContent || "0") || 0;
-    const next = prev + amt;
-    if (tonLabel) tonLabel.textContent = next.toFixed(2);
-
-    // 3) уведомим сервер (он пошлёт сообщение в чат бота)
-    try {
-      await fetch("/notify/deposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: amt,
-          initData: window.Telegram?.WebApp?.initData || ""
-        })
-      });
-    } catch (e) {
-      console.warn("notify/deposit failed:", e);
-    }
-
-    // очистим поле
     amountInput.value = "";
   } catch (err) {
     console.error("[deposit] sendTransaction error:", err);
@@ -183,18 +141,14 @@ depositBtn?.addEventListener("click", async () => {
 tc.onStatusChange((w) => {
   wallet = w || null;
   renderUI();
-  sheet?.classList.remove("sheet--below"); // если вернулись из модалки
+  sheet?.classList.remove("sheet--below");
 });
 
-/* Восстановление прошлой сессии при загрузке */
-(async () => {
-  try { await tc.connectionRestored; } catch {}
-  wallet = tc.wallet || null;
-  renderUI();
-})();
-
-/* На случай возврата из внешнего кошелька/модалки */
+/* На случай возврата из внешнего кошелька */
 window.addEventListener("focus", () => {
   setTimeout(() => sheet?.classList.remove("sheet--below"), 300);
   renderUI();
 });
+
+/* init UI */
+renderUI();
