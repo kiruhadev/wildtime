@@ -750,16 +750,22 @@
             /* --- навигация ниже, чтобы модалки были над ней --- */
             .bottom-nav{ z-index: 1500; }
 
-            /* === TON Connect поверх всего === */
-            body > div[id*="ton-connect"],
-            body > div[class*="ton-connect"],
-            body > div[class*="TonConnect"],
-            .tc-modal,[data-tc-modal]{
-              position:fixed !important;
-              inset:0 !important;
-              z-index:5000 !important;      /* выше листа депозита и нижней навигации */
-              pointer-events:all !important;
-            }
+           /* 3) TonConnect modal: ловим все варианты контейнера на разных версиях библиотеки */
+body > div[id*="ton-connect"],
+body > div[class*="ton-connect"],
+body > div[class*="TonConnect"],
+.tc-modal,
+[data-tc-modal],
+#tc-modal-root,
+#ton-connect-ui__modal,
+.ton-connect-modal,
+div[id^="ton-connect-ui"],
+div[class*="tonconnect"] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important; /* самый верхний возможный безопасный уровень */
+  pointer-events: auto !important;
+}
 
             /* Когда открыт TON Connect — блюрим/блокируем фон */
             body.tonc-open .sheet,
@@ -906,4 +912,7 @@
   min-width:36px; height:28px; padding:0 8px; margin-right:6px;
   border-radius:8px; color:#fff; font:600 12px/1 mf,system-ui,sans-serif;
 }
+
+
+
 

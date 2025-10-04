@@ -1,175 +1,297 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
   <title>Wild Time</title>
 
-  <!-- TonConnect UI (обязательно) -->
+  <!-- TonConnect UI (библиотека, без инициализации здесь) -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- Предзагрузка шрифта (если используешь mf) -->
+  <link rel="preload" href="/fonts/mf.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Стили проекта -->
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div class="app">
 
-    <!-- Top bar -->
-    <header class="topbar">
-      <div class="logo-wrap">
-        <img src="/images/logo-placeholder.png" class="app-logo" alt="logo" />
+    <!-- ===== TOP BAR ===== -->
+    <header class="topbar" role="banner">
+      <!-- Пилюля профиля (аватар + имя) -->
+      <button id="profilePill" class="pill pill--user" type="button" aria-label="Open profile">
+        <img class="pill-avatar" src="/images/profile/avatar.png" alt="" />
+        <span class="pill-username" id="pillUsername">Loading…</span>
+      </button>
+
+      <!-- Логотип проекта -->
+      <div class="logo-wrap" aria-label="App logo">
+        <img src="/images/logo/logo.png" alt="Wild Time" class="app-logo" />
       </div>
 
-      <!-- TON pill (открывает депозит-лист) -->
-      <button id="tonPill" class="pill pill--ton" type="button" aria-label="TON balance" data-open-deposit>
-        <img src="/icons/ton.svg" class="pill-icon" alt="">
-        <span id="tonAmount">0.00</span>
-        <img src="/icons/plus.svg" class="pill-plus-icon" alt="">
-      </button>
+      <!-- TON баланс (открывает депозит) -->
+      <div class="balance">
+        <button id="tonPill" class="pill pill--ton" type="button" aria-label="TON balance" data-open-deposit>
+          <img src="/icons/ton.svg" alt="" class="pill-icon" />
+          <span id="tonAmount">0.00</span>
+          <img src="/icons/plus.svg" alt="" class="pill-plus-icon" />
+        </button>
+      </div>
     </header>
 
-    <!-- History -->
+    <!-- ===== HISTORY (иконки последних выпадений — добавляй через JS) ===== -->
     <section class="history" aria-label="Last results">
-      <div id="historyList" class="history-list"></div>
+      <div id="historyList" class="history-list">
+        <!-- пример элемента истории с иконкой:
+        <div class="history-item">
+          <img src="/images/history/1x_small.png" alt="1x" />
+        </div>
+        -->
+      </div>
     </section>
 
-    <!-- Wheel page (default) -->
+    <!-- ===== WHEEL PAGE ===== -->
     <main id="wheelPage" class="page page-active">
-      <section class="wheel">
-        <canvas id="wheelCanvas" width="420" height="420"></canvas>
-        <div id="pointer" class="pointer">▼</div>
-        <div id="countdown" class="countdown"><span id="countNum">9</span></div>
+      <section class="wheel" aria-label="Wheel">
+        <canvas id="wheelCanvas" width="420" height="420" aria-label="Wheel canvas"></canvas>
+        <div id="pointer" class="pointer" aria-hidden="true">▼</div>
+        <div id="countdown" class="countdown" aria-live="polite" aria-atomic="true">
+          <span id="countNum">9</span>
+        </div>
       </section>
 
-      <!-- Bets overlay (только визуальный каркас — твои картинки подставишь позже) -->
-      <section id="betOverlay" class="bet-overlay">
+      <!-- ===== BET OVERLAY ===== -->
+      <section id="betOverlay" class="bet-overlay" aria-label="Betting panel">
         <div class="bet-controls">
-          <div class="bet-amounts">
-            <button class="amount-btn" data-amount="0.5">0.5</button>
-            <button class="amount-btn" data-amount="1">1</button>
-            <button class="amount-btn" data-amount="2.5">2.5</button>
-            <button class="amount-btn" data-amount="5">5</button>
+          <!-- Суммы TON (SVG-иконки) -->
+          <div class="bet-amounts" aria-label="Bet amount">
+            <button class="amount-btn" data-amount="0.5">
+              <img src="/icons/amount-0.5.svg" alt="0.5 TON" />
+            </button>
+            <button class="amount-btn" data-amount="1">
+              <img src="/icons/amount-1.svg" alt="1 TON" />
+            </button>
+            <button class="amount-btn" data-amount="2.5">
+              <img src="/icons/amount-2.5.svg" alt="2.5 TON" />
+            </button>
+            <button class="amount-btn" data-amount="5">
+              <img src="/icons/amount-5.svg" alt="5 TON" />
+            </button>
           </div>
 
-          <div class="bet-actions">
-            <button class="action-btn undo">↶</button>
-            <button class="action-btn clear">✕</button>
-            <button class="action-btn repeat">⟳</button>
+          <!-- Действия (SVG-иконки) -->
+          <div class="bet-actions" aria-label="Bet actions">
+            <button class="action-btn undo" data-action="undo" aria-label="Undo">
+              <img src="/icons/undo.svg" alt="" />
+            </button>
+            <button class="action-btn clear" data-action="clear" aria-label="Clear">
+              <img src="/icons/clear.svg" alt="" />
+            </button>
+            <button class="action-btn repeat" data-action="repeat" aria-label="Repeat">
+              <img src="/icons/repeat.svg" alt="" />
+            </button>
           </div>
         </div>
 
-        <div class="bet-grid">
-          <button class="bet-tile muted" data-seg="1x">1×</button>
-          <button class="bet-tile muted" data-seg="3x">3×</button>
-          <button class="bet-tile muted" data-seg="7x">7×</button>
-          <button class="bet-tile muted" data-seg="11x">11×</button>
-          <button class="bet-tile bonus" data-seg="50&50">50&50</button>
-          <button class="bet-tile bonus" data-seg="Loot Rush">Loot Rush</button>
-          <button class="bet-tile bonus wide" data-seg="Wild Time">Wild Time</button>
+        <!-- Сетка лотов (большие картинки) -->
+        <div class="bet-grid" role="grid" aria-label="Select segment">
+          <!-- ряд 1 -->
+          <button class="bet-tile muted" role="gridcell" data-seg="1x">
+            <img class="bet-img" src="/images/bets/1x.png" alt="1x" />
+            <span class="bet-badge" data-badge-for="1x" hidden>0</span>
+          </button>
+          <button class="bet-tile muted" role="gridcell" data-seg="3x">
+            <img class="bet-img" src="/images/bets/3x.png" alt="3x" />
+            <span class="bet-badge" data-badge-for="3x" hidden>0</span>
+          </button>
+          <!-- ряд 2 -->
+          <button class="bet-tile muted" role="gridcell" data-seg="7x">
+            <img class="bet-img" src="/images/bets/7x.png" alt="7x" />
+            <span class="bet-badge" data-badge-for="7x" hidden>0</span>
+          </button>
+          <button class="bet-tile muted" role="gridcell" data-seg="11x">
+            <img class="bet-img" src="/images/bets/11x.png" alt="11x" />
+            <span class="bet-badge" data-badge-for="11x" hidden>0</span>
+          </button>
+          <!-- ряд 3 (бонусы) -->
+          <button class="bet-tile bonus" role="gridcell" data-seg="50&50">
+            <img class="bet-img" src="/images/bets/50-50.png" alt="50&50" />
+            <span class="bet-badge" data-badge-for="50&50" hidden>0</span>
+          </button>
+          <button class="bet-tile bonus" role="gridcell" data-seg="Loot Rush">
+            <img class="bet-img" src="/images/bets/loot.png" alt="Loot Rush" />
+            <span class="bet-badge" data-badge-for="Loot Rush" hidden>0</span>
+          </button>
+          <!-- ряд 4 (широкий бонус) -->
+          <button class="bet-tile bonus wide" role="gridcell" data-seg="Wild Time">
+            <img class="bet-img" src="/images/bets/wild.png" alt="Wild Time" />
+            <span class="bet-badge" data-badge-for="Wild Time" hidden>0</span>
+          </button>
         </div>
       </section>
     </main>
 
-    <!-- Cases -->
+    <!-- ===== CASES PAGE ===== -->
     <main id="casesPage" class="page">
-      <section class="cases">
+      <section class="cases" aria-label="Cases">
         <h2>Cases</h2>
         <div class="cases-grid">
-          <!-- 10 прямоугольников-плейсхолдеров -->
-          <div class="case-card">Case 1</div>
-          <div class="case-card">Case 2</div>
-          <div class="case-card">Case 3</div>
-          <div class="case-card">Case 4</div>
-          <div class="case-card">Case 5</div>
-          <div class="case-card">Case 6</div>
-          <div class="case-card">Case 7</div>
-          <div class="case-card">Case 8</div>
-          <div class="case-card">Case 9</div>
-          <div class="case-card">Case 10</div>
+          <!-- 10 карточек с картинками (плейсхолдеры) -->
+          <div class="case-card">
+            <img src="/images/cases/case-01.png" alt="Case 1" class="case-img" />
+            <div class="case-title">Case 1</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-02.png" alt="Case 2" class="case-img" />
+            <div class="case-title">Case 2</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-03.png" alt="Case 3" class="case-img" />
+            <div class="case-title">Case 3</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-04.png" alt="Case 4" class="case-img" />
+            <div class="case-title">Case 4</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-05.png" alt="Case 5" class="case-img" />
+            <div class="case-title">Case 5</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-06.png" alt="Case 6" class="case-img" />
+            <div class="case-title">Case 6</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-07.png" alt="Case 7" class="case-img" />
+            <div class="case-title">Case 7</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-08.png" alt="Case 8" class="case-img" />
+            <div class="case-title">Case 8</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-09.png" alt="Case 9" class="case-img" />
+            <div class="case-title">Case 9</div>
+          </div>
+          <div class="case-card">
+            <img src="/images/cases/case-10.png" alt="Case 10" class="case-img" />
+            <div class="case-title">Case 10</div>
+          </div>
         </div>
       </section>
     </main>
 
-    <!-- Inventory -->
+    <!-- ===== INVENTORY PAGE ===== -->
     <main id="inventoryPage" class="page">
-      <section class="coming">
+      <section class="inventory" aria-label="Inventory">
         <h2>Inventory</h2>
-        <p>Coming soon…</p>
+        <div class="inventory-grid">
+          <!-- Плейсхолдеры предметов -->
+          <div class="inv-card">
+            <img src="/images/inventory/item-01.png" alt="Item 1" class="inv-img" />
+            <div class="inv-title">Item 1</div>
+          </div>
+          <div class="inv-card">
+            <img src="/images/inventory/item-02.png" alt="Item 2" class="inv-img" />
+            <div class="inv-title">Item 2</div>
+          </div>
+          <div class="inv-card">
+            <img src="/images/inventory/item-03.png" alt="Item 3" class="inv-img" />
+            <div class="inv-title">Item 3</div>
+          </div>
+        </div>
       </section>
     </main>
 
-    <!-- Profile -->
+    <!-- ===== PROFILE PAGE ===== -->
     <main id="profilePage" class="page">
-      <section class="profile-card">
+      <section class="profile-card" aria-label="Profile">
         <div class="profile-header">
-          <div class="avatar"></div>
+          <img src="/images/profile/avatar.png" alt="" class="avatar" id="profileAvatarImg" />
           <div class="info">
-            <div class="name">Coming soon…</div>
+            <div class="name" id="profileName">Coming soon…</div>
             <div class="sub">Profile will be available later</div>
           </div>
         </div>
+
         <div class="profile-stats">
-          <div class="stat"><div class="label">Wins</div><div class="val">0</div></div>
-          <div class="stat"><div class="label">Bets</div><div class="val">0</div></div>
-          <div class="stat"><div class="label">Profit</div><div class="val">0</div></div>
+          <div class="stat">
+            <div class="label">Wins</div><div class="val" id="statWins">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Bets</div><div class="val" id="statBets">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Profit</div><div class="val" id="statProfit">0</div>
+          </div>
         </div>
+
+        <!-- Кнопка редактирования/настроек (иконка) -->
+        <button class="profile-action" type="button" aria-label="Edit profile">
+          <img src="/icons/settings.svg" alt="" />
+        </button>
       </section>
     </main>
 
-    <!-- Bottom nav -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" data-target="wheelPage">
-        <img src="/icons/wheel.svg" class="nav-icon" alt="">
+    <!-- ===== BOTTOM NAV (SVG + подписи) ===== -->
+    <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+      <button class="nav-item active" data-target="wheelPage" aria-label="Wheel">
+        <img src="/icons/wheel.svg" alt="" class="nav-icon" />
         <span class="nav-label">Wheel</span>
       </button>
-      <button class="nav-item" data-target="casesPage">
-        <img src="/icons/cases.svg" class="nav-icon" alt="">
+      <button class="nav-item" data-target="casesPage" aria-label="Cases">
+        <img src="/icons/cases.svg" alt="" class="nav-icon" />
         <span class="nav-label">Cases</span>
       </button>
-      <button class="nav-item" data-target="inventoryPage">
-        <img src="/icons/inventory.svg" class="nav-icon" alt="">
+      <button class="nav-item" data-target="inventoryPage" aria-label="Inventory">
+        <img src="/icons/inventory.svg" alt="" class="nav-icon" />
         <span class="nav-label">Inventory</span>
       </button>
-      <button class="nav-item" data-target="profilePage">
-        <img src="/icons/profile.svg" class="nav-icon" alt="">
+      <button class="nav-item" data-target="profilePage" aria-label="Profile">
+        <img src="/icons/profile.svg" alt="" class="nav-icon" />
         <span class="nav-label">Profile</span>
       </button>
     </nav>
 
-    <!-- Deposit bottom sheet -->
-    <div class="sheet" id="depositSheet">
+    <!-- ===== DEPOSIT BOTTOM SHEET ===== -->
+    <div class="sheet" id="depositSheet" aria-hidden="true">
       <div class="sheet__backdrop"></div>
-      <div class="sheet__panel">
-        <button class="sheet__close" type="button">✕</button>
-        <div class="sheet__handle"></div>
+      <div class="sheet__panel" role="dialog" aria-modal="true" aria-label="Deposit">
+        <button class="sheet__close" type="button" aria-label="Close">✕</button>
+        <div class="sheet__handle" aria-hidden="true"></div>
+
         <h2 class="sheet__title">Deposit</h2>
-        <p class="sheet__sub sheet__sub--muted">Minimum 0.5 TON</p>
+        <p class="sheet__sub">Available in TON only</p>
+        <p class="sheet__sub sheet__sub--muted">Minimum deposit <strong>0.5 TON</strong></p>
 
         <label class="dep-input">
-          <img class="dep-input__icon" src="/icons/ton.svg" alt="">
-          <input id="depAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="Amount (TON)">
+          <img src="/icons/ton.svg" alt="" class="dep-input__icon" />
+          <input id="depAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="Amount (TON)" />
         </label>
-        <div class="dep-hint">Example: 0.5, 1, 2.5</div>
+        <div id="depHint" class="dep-hint">Connect wallet and enter at least 0.5 TON</div>
 
         <div class="dep-actions">
-          <button class="btn btn--ghost" id="connectTonBtn">
-            <span class="btn__icons"><img src="/icons/telegram.svg" alt=""></span>
+          <button id="btnConnectTon" class="btn btn--ghost" type="button">
+            <span class="btn__icons">
+              <img src="/icons/telegram.svg" alt="Telegram" />
+            </span>
             Connect wallet
           </button>
-          <button class="btn btn--primary" id="depositNowBtn" disabled>Deposit Now</button>
+          <button id="btnDepositNow" class="btn btn--primary" type="button" disabled>
+            Deposit Now
+          </button>
         </div>
       </div>
     </div>
 
   </div>
 
+  <!-- Скрипты проекта -->
   <script src="/js/app.js" defer></script>
   <script src="/js/wheel.js" defer></script>
   <script src="/js/deposit.js" defer></script>
 </body>
 </html>
-
-   
-   
-   
-   
-  
