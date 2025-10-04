@@ -528,24 +528,22 @@
                           BOTTOM NAV
                   =========================== */
        
-            .bottom-nav {
-              position: fixed;
-              left: 50%;
-              transform: translateX(-50%);
-              bottom: 0;
-              width: 100%;
-              max-width: 430px;
-
-              display: flex;
-              justify-content: space-around;
-              align-items: center;
-              gap: 4px;
-
-              padding: 1px 4px; /* меньше отступ */
-              background: rgba(20, 24, 32, 0.75); /* прозрачность */
-              backdrop-filter: blur(12px); /* стеклянный эффект */
-              z-index: 50;
-            }
+                .bottom-nav {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                    background: rgba(20, 20, 20, 0.85);
+                    backdrop-filter: blur(10px);
+                    border-top: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 20px 20px 0 0; /* ← сглаженные верхние углы */
+                    height: 60px;
+                    z-index: 50; /* понижаем немного, чтобы не перекрывала модалки */
+                  }
+                  
 
             /* кнопки */
             .nav-item {
@@ -686,52 +684,91 @@
       
       
       
-                             /* === Deposit Bottom Sheet (scoped) === */
-          .sheet { position: fixed; inset: 0; z-index: 10000; pointer-events: none; }
-          .sheet__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.35); opacity:0; transition:opacity .2s ease; }
-          .sheet__panel{
-            position:absolute; left:50%; transform:translate(-50%, 100%); bottom:0; width:100%; max-width:430px;
-            background:#161a22; border-top-left-radius:18px; border-top-right-radius:18px;
-            border:1px solid rgba(255,255,255,.08); border-bottom:none;
-            padding:16px 16px calc(env(safe-area-inset-bottom) + 16px);
-            box-shadow:0 -20px 60px rgba(0,0,0,.6); transition:transform .26s ease;
-            color:#e7edf7;
-          }
-          .sheet__handle{ width:56px; height:5px; margin:4px auto 10px; border-radius:999px; background:rgba(255,255,255,.18); }
-          .sheet__title{ margin:4px 0 2px; font-size:20px; font-weight:800; text-align:center; }
-          .sheet__sub{ margin:0; text-align:center; }
-          .sheet__sub--muted{ color:#9aa7bd; }
-          .sheet__close{
-            position:absolute; right:10px; top:10px; width:28px; height:28px; border-radius:8px;
-            background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#e7edf7;
-          }
+                                      /* === Deposit Bottom Sheet (scoped) === */
+            .sheet{
+              position:fixed; inset:0; z-index:3000;   /* было 10000: слишком высоко */
+              pointer-events:none;
+            }
+            .sheet__backdrop{
+              position:absolute; inset:0;
+              background:rgba(0,0,0,.35);
+              opacity:0; transition:opacity .2s ease;
+            }
+            .sheet__panel{
+              position:absolute; left:50%; bottom:0;
+              transform:translate(-50%, 100%);
+              width:100%; max-width:430px;
 
-          /* open */
-          .sheet.sheet--open { pointer-events:auto; }
-          .sheet.sheet--open .sheet__backdrop{ opacity:1; }
-          .sheet.sheet--open .sheet__panel { transform:translate(-50%, 0); }
+              background:#161a22;
+              border-top-left-radius:18px; border-top-right-radius:18px;
+              border:1px solid rgba(255,255,255,.08); border-bottom:none;
+              padding:16px 16px calc(env(safe-area-inset-bottom) + 16px);
+              box-shadow:0 -20px 60px rgba(0,0,0,.6);
+              transition:transform .26s ease;
+              color:#e7edf7;
+            }
+            .sheet__handle{ width:56px; height:5px; margin:4px auto 10px; border-radius:999px; background:rgba(255,255,255,.18); }
+            .sheet__title{ margin:4px 0 2px; font-size:20px; font-weight:800; text-align:center; }
+            .sheet__sub{ margin:0; text-align:center; }
+            .sheet__sub--muted{ color:#9aa7bd; }
+            .sheet__close{
+              position:absolute; right:10px; top:10px; width:28px; height:28px; border-radius:8px;
+              background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#e7edf7;
+            }
 
-          /* Input */
-          .dep-input{
-            display:flex; align-items:center; gap:10px; background:#0f131a;
-            border:1px solid rgba(255,255,255,.1); padding:12px; border-radius:14px; margin:14px 0 8px;
-          }
-          .dep-input__icon{ width:18px; height:18px; opacity:.9; }
-          .dep-input input{
-            width:100%; background:transparent; border:none; color:#e7edf7; font-size:16px; outline:none;
-          }
-          .dep-hint{ font-size:12px; color:#9aa7bd; margin-bottom:10px; }
+            /* open */
+            .sheet.sheet--open{ pointer-events:auto; }
+            .sheet.sheet--open .sheet__backdrop{ opacity:1; }
+            .sheet.sheet--open .sheet__panel{ transform:translate(-50%, 0); }
 
-          /* Buttons */
-          .dep-actions{ display:flex; gap:10px; }
-          .btn{
-            display:flex; align-items:center; justify-content:center; gap:10px;
-            flex:1; padding:12px; border-radius:12px; font-weight:800; border:1px solid transparent; color:#e7edf7;
-          }
-          .btn__icons img{ width:18px; height:18px; object-fit:contain; filter:drop-shadow(0 0 6px rgba(0,166,255,.25)); }
-          .btn--ghost{ background:transparent; border-color:rgba(255,255,255,.2); }
-          .btn--primary{ background:#0d68c3; color:#fff; border-color:#0d68c3; box-shadow:0 6px 16px rgba(13,104,195,.35); }
-          .btn[disabled]{ opacity:.5; filter:saturate(.6); pointer-events:none; }
+            /* Input */
+            .dep-input{
+              display:flex; align-items:center; gap:10px; background:#0f131a;
+              border:1px solid rgba(255,255,255,.1); padding:12px; border-radius:14px; margin:14px 0 8px;
+            }
+            .dep-input__icon{ width:18px; height:18px; opacity:.9; }
+            .dep-input input{
+              width:100%; background:transparent; border:none; color:#e7edf7; font-size:16px; outline:none;
+            }
+            .dep-hint{ font-size:12px; color:#9aa7bd; margin-bottom:10px; }
+
+            /* Buttons */
+            .dep-actions{ display:flex; gap:10px; }
+            .btn{
+              display:flex; align-items:center; justify-content:center; gap:10px;
+              flex:1; padding:12px; border-radius:12px; font-weight:800; border:1px solid transparent; color:#e7edf7;
+            }
+            .btn__icons img{ width:18px; height:18px; object-fit:contain; filter:drop-shadow(0 0 6px rgba(0,166,255,.25)); }
+            .btn--ghost{ background:transparent; border-color:rgba(255,255,255,.2); }
+            .btn--primary{ background:#0d68c3; color:#fff; border-color:#0d68c3; box-shadow:0 6px 16px rgba(13,104,195,.35); }
+            .btn[disabled]{ opacity:.5; filter:saturate(.6); pointer-events:none; }
+
+            /* --- навигация ниже, чтобы модалки были над ней --- */
+            .bottom-nav{ z-index: 1500; }
+
+            /* === TON Connect поверх всего === */
+            body > div[id*="ton-connect"],
+            body > div[class*="ton-connect"],
+            body > div[class*="TonConnect"],
+            .tc-modal,[data-tc-modal]{
+              position:fixed !important;
+              inset:0 !important;
+              z-index:5000 !important;      /* выше листа депозита и нижней навигации */
+              pointer-events:all !important;
+            }
+
+            /* Когда открыт TON Connect — блюрим/блокируем фон */
+            body.tonc-open .sheet,
+            body.tonc-open .bottom-nav{
+              filter:blur(4px) brightness(.7);
+              pointer-events:none;
+            }
+
+            /* (если у тебя где-то использовалось) */
+            .deposit-popup{ z-index: 3000 !important; }  /* вровень с .sheet */
+
+          
+          
 
 
 
