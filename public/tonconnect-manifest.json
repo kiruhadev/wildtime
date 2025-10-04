@@ -3,5 +3,6 @@
   "name": "Wild Time",
   "iconUrl": "https://wildtime-1.onrender.com/icons/app-icon.png",
   "termsOfUseUrl": "https://wildtime-1.onrender.com/terms",
-  "privacyPolicyUrl": "https://wildtime-1.onrender.com/privacy"
+  "privacyPolicyUrl": "https://wildtime-1.onrender.com/privacy",
+  "manifestVersion": "1"
 }

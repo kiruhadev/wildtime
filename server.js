@@ -160,6 +160,20 @@ app.post("/deposit", async (req, res) => {
 });
 
 /* =========================
+   TON CONNECT MANIFEST
+   ========================= */
+   app.get("/tonconnect-manifest.json", (req, res) => {
+    res.json({
+      url: "https://wildtime-1.onrender.com",
+      name: "WildTime",
+      iconUrl: "https://wildtime-1.onrender.com/images/app-icon.png", // замени на своё лого
+    });
+  });
+  
+
+
+
+/* =========================
    Маршрут на фронт
    ========================= */
 app.get("/", (req, res) => {
