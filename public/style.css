@@ -733,7 +733,11 @@
             .dep-hint{ font-size:12px; color:#9aa7bd; margin-bottom:10px; }
 
             /* Buttons */
-            .dep-actions{ display:flex; gap:10px; }
+            .dep-actions{ display:flex; gap:10px; 
+            }
+            .dep-actions.single { justify-content: center; }
+            .dep-actions.single .btn--primary { flex: 0; width: 100%; max-width: 320px; }
+
             .btn{
               display:flex; align-items:center; justify-content:center; gap:10px;
               flex:1; padding:12px; border-radius:12px; font-weight:800; border:1px solid transparent; color:#e7edf7;

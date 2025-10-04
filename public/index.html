@@ -6,7 +6,8 @@
   <title>Wild Time</title>
   <link rel="stylesheet" href="/style.css" />
     <!-- если используешь CDN -->
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
   <script>
     // кэш-бастер, чтобы Telegram/кошелёк точно подхватили свежий манифест
     const MANIFEST_URL = 'https://wildtime-1.onrender.com/tonconnect-manifest.json?v=' + Date.now();
@@ -259,8 +260,8 @@
         <!-- Amount -->
         <label class="dep-input">
           <img src="/icons/ton.svg" alt="" class="dep-input__icon" />
-          <input id="depAmount" type="number" step="0.01" min="0.5"
-                placeholder="Enter amount (TON)" inputmode="decimal" />
+          <input id="depAmount" type="text" inputmode="decimal" 
+          autocomplete="off" placeholder="Amount (TON)">
         </label>
         <div id="depHint" class="dep-hint">Connect wallet and enter at least 0.5 TON</div>
 
