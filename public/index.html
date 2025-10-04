@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+  <title>Wild Time</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js" defer></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="topbar">
+      <!-- Профиль -->
+      <button id="profilePill" class="pill pill--user" type="button" aria-label="Open profile">
+        <img class="pill-avatar" src="/images/profile/avatar.png" alt="" />
+        <span class="pill-username" id="pillUsername">Loading...</span>
+      </button>
+    
+      <div class="logo-wrap">
+        <img src="/images/logo-placeholder.png" alt="Logo" class="app-logo" />
+      </div>
+    
+      <!-- TON баланс (именно ЭТА пилюля должна открывать депозит) -->
+      <div class="balance">
+        <button id="tonPill" class="pill pill--ton" type="button" aria-label="TON balance">
+          <img src="/icons/ton.svg" alt="TON" class="pill-icon" />
+          <span id="tonAmount">0.00</span>
+          <img src="/icons/plus.svg" alt="Add" class="pill-plus-icon" />
+        </button>
+      </div>
+    </header>
+    
+    
+
+    <!-- ===== HISTORY ===== -->
+    <section class="history" aria-label="Last results">
+      <div id="historyList" class="history-list"></div>
+    </section>
+
+    <!-- ===== WHEEL PAGE ===== -->
+    <main id="wheelPage" class="page page-active">
+      <section class="wheel">
+        <canvas id="wheelCanvas" width="420" height="420"></canvas>
+        <div id="pointer" class="pointer">▼</div>
+        <div id="countdown" class="countdown">
+          <span id="countNum">9</span>
+        </div>
+      </section>
+
+      <!-- ===== BET OVERLAY ===== -->
+      <section id="betOverlay" class="bet-overlay">
+        <!-- TOP CONTROLS -->
+        <div class="bet-controls">
+          <!-- Amount chips -->
+          <div class="bet-amounts">
+            <button class="amount-btn" data-amount="0.25">
+              <img src="/icons/amount-0.25.svg" alt="0.25 TON" />
+            </button>
+            <button class="amount-btn" data-amount="0.5">
+              <img src="/icons/amount-0.5.svg" alt="0.5 TON" />
+            </button>
+            <button class="amount-btn" data-amount="2.5">
+              <img src="/icons/amount-2.5.svg" alt="2.5 TON" />
+            </button>
+            <button class="amount-btn" data-amount="5">
+              <img src="/icons/amount-5.svg" alt="5 TON" />
+            </button>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="bet-actions">
+            <button class="action-btn undo" data-action="undo">
+              <img src="/icons/undo.svg" alt="Undo" />
+            </button>
+            <button class="action-btn clear" data-action="clear">
+              <img src="/icons/clear.svg" alt="Clear" />
+            </button>
+            <button class="action-btn repeat" data-action="repeat">
+              <img src="/icons/repeat.svg" alt="Repeat" />
+            </button>
+          </div>
+        </div>
+
+        <!-- GRID -->
+        <div class="bet-grid">
+          <button class="bet-tile muted" data-seg="1x"><img src="/images/bets/1x.png" alt="1x" /></button>
+          <button class="bet-tile muted" data-seg="3x"><img src="/images/bets/3x.png" alt="3x" /></button>
+          <button class="bet-tile muted" data-seg="7x"><img src="/images/bets/7x.png" alt="7x" /></button>
+          <button class="bet-tile muted" data-seg="11x"><img src="/images/bets/11x.png" alt="11x" /></button>
+          <button class="bet-tile bonus" data-seg="50&50"><img src="/images/bets/50-50.png" alt="50&50" /></button>
+          <button class="bet-tile bonus" data-seg="Loot Rush"><img src="/images/bets/loot.png" alt="Loot Rush" /></button>
+          <button class="bet-tile bonus wide" data-seg="Wild Time"><img src="/images/bets/wild.png" alt="Wild Time" /></button>
+        </div>
+      </section>
+    </main>
+   
+   
+    <!-- WHEEL -->
+    <script src="/js/wheel.js" defer></script>
+
+    <!-- ===== CASES PAGE ===== -->
+    <main id="casesPage" class="page">
+      <section class="cases-section">
+        <h2 class="cases-title">Cases</h2>
+        <div class="cases-grid">
+          <div class="case-card">Case 1</div>
+          <div class="case-card">Case 2</div>
+          <div class="case-card">Case 3</div>
+          <div class="case-card">Case 4</div>
+          <div class="case-card">Case 5</div>
+          <div class="case-card">Case 6</div>
+          <div class="case-card">Case 7</div>
+          <div class="case-card">Case 8</div>
+          <div class="case-card">Case 9</div>
+          <div class="case-card">Case 10</div>
+        </div>
+      </section>
+    </main>
+    
+
+    <!-- ===== INVENTORY PAGE ===== -->
+    <main id="inventoryPage" class="page">
+      <section class="inventory">
+        <h2>Inventory</h2>
+        <p>Your collected items will be displayed here 📦</p>
+        <div class="inventory-list">
+          <div class="item">No items yet</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== PROFILE PAGE ===== -->
+    <main id="profilePage" class="page">
+      <section class="profile-card">
+        <div class="profile-avatar"><img src="/images/profile-placeholder.png" alt="User avatar" /></div>
+        <div class="profile-info">
+          <h2 class="profile-name">Username</h2>
+          <p class="profile-username">@nickname</p>
+        </div>
+        <div class="profile-balance">
+          <div class="balance-item"><img src="/icons/stars.svg" alt="Stars" class="balance-icon" /><span>5,000</span></div>
+          <div class="balance-item"><img src="/icons/ton.svg" alt="TON" class="balance-icon" /><span>10.5</span></div>
+        </div>
+        <div class="profile-stats">
+          <div class="stat"><span class="stat-value">123</span><span class="stat-label">Games</span></div>
+          <div class="stat"><span class="stat-value">45%</span><span class="stat-label">Win Rate</span></div>
+          <div class="stat"><span class="stat-value">7</span><span class="stat-label">Bonuses</span></div>
+        </div>
+        <button class="logout-btn">Logout</button>
+      </section>
+    </main>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="wheelPage">
+        <img src="/icons/wheel.svg" alt="Wheel" class="nav-icon" /><span class="nav-label">Wheel</span>
+      </button>
+      <button class="nav-item" data-target="casesPage">
+        <img src="/icons/cases.svg" alt="Cases" class="nav-icon" /><span class="nav-label">Cases</span>
+      </button>
+      <button class="nav-item" data-target="inventoryPage">
+        <img src="/icons/inventory.svg" alt="Inventory" class="nav-icon" /><span class="nav-label">Inventory</span>
+      </button>
+      <button class="nav-item" data-target="profilePage">
+        <img src="/icons/profile.svg" alt="Profile" class="nav-icon" /><span class="nav-label">Profile</span>
+      </button>
+    </nav>
+
+  </div>
+        
+
+      <!-- Telegram WebApp SDK -->
+      
+
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const tg = window.Telegram?.WebApp;
+          const user = tg?.initDataUnsafe?.user;
+
+          const nameEl = document.getElementById("pillUsername");
+          const avaEl  = document.querySelector(".pill-avatar");
+
+          if (user) {
+            // Имя
+            if (nameEl) {
+              nameEl.textContent = user.first_name || user.username || "User";
+            }
+
+            // Фото
+            if (avaEl && user.photo_url) {
+              avaEl.src = user.photo_url;
+            }
+          }
+
+          // Переход в профиль
+          document.getElementById("profilePill").addEventListener("click", () => {
+            // Переключаемся на страницу профиля
+            document.querySelectorAll(".page").forEach(p => p.classList.remove("page-active"));
+            document.getElementById("profilePage").classList.add("page-active");
+
+            // Обновляем навигацию
+            document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+            document.querySelector('[data-target="profilePage"]').classList.add("active");
+          });
+        });
+      </script>
+      
+  
+  
+          <!--   SCRIPTS   --> 
+  <script src="/js/app.js" defer></script>
+  
+
+  
+  
+  
+  
+  
+  
+          <!-- ===== Deposit Bottom Sheet (TON) ===== -->
+    <div id="depositSheet" class="sheet" aria-hidden="true">
+      <div class="sheet__backdrop" data-close="sheet"></div>
+
+      <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="depTitle">
+        <button class="sheet__close" title="Close" aria-label="Close" data-close="sheet">✕</button>
+        <div class="sheet__handle"></div>
+
+        <h3 id="depTitle" class="sheet__title">Deposit</h3>
+        <p class="sheet__sub">Available in TON only</p>
+        <p class="sheet__sub sheet__sub--muted">Minimum deposit <strong>0.5 TON</strong></p>
+
+        <!-- Amount -->
+        <label class="dep-input">
+          <img src="/icons/ton.svg" alt="" class="dep-input__icon" />
+          <input id="depAmount" type="number" step="0.01" min="0.5"
+                placeholder="Enter amount (TON)" inputmode="decimal" />
+        </label>
+        <div id="depHint" class="dep-hint">Connect wallet and enter at least 0.5 TON</div>
+
+        <!-- Actions -->
+        <div class="dep-actions">
+          <!-- Только Telegram-иконка, без TON -->
+          <button id="btnConnectTon" class="btn btn--ghost" type="button">
+            <span class="btn__icons">
+              <img src="/icons/telegram.svg" alt="Telegram" />
+            </span>
+            <span class="btn__text">Connect wallet</span>
+          </button>
+
+          <button id="btnDeposit" class="btn btn--primary" type="button" disabled>
+            Deposit Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+   
+   
+   
+   
+   
+    <!-- Твой JS подключения шита -->
+    <script src="/js/deposit.js" defer></script>
+
+
+    <!-- AUTH -->
+    <script src="/js/auth.js" defer></script>
+    
+    
+    
+    
+
+
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+### ОК
+POST http://localhost:3000/deposit
+Content-Type: application/json
+
+{ "amount": 9999, "userId": 1142079504 }
+
+### Ошибка (меньше минимума)
+POST http://localhost:3000/deposit
+Content-Type: application/json
+
+{ "amount": 0.3, "userId": 1142079504 }
