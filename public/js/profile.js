@@ -1,162 +1,161 @@
 // public/js/profile.js
 (() => {
-    // ====== DOM ======
-    const userPill       = document.getElementById("userPill");
-    const userAvatar     = document.getElementById("userAvatar");
-    const userNameEl     = document.getElementById("userName");
+    // ---------- helpers ----------
+    const $ = (id) => document.getElementById(id);
   
-    const profileAvatar  = document.getElementById("profileAvatar");
-    const profileName    = document.getElementById("profileName");
-    const profileHandle  = document.getElementById("profileHandle");
+    // DOM refs
+    const userPill         = $("userPill");
+    const userAvatar       = $("userAvatar");
+    const userNameEl       = $("userName");
   
-    const profileWallet  = document.getElementById("profileWallet");
-    const walletReveal   = document.getElementById("walletReveal");
-    const disconnectBtn  = document.getElementById("profileDisconnect");
+    const profileAvatar    = $("profileAvatar");
+    const profileName      = $("profileName");
+    const profileHandle    = $("profileHandle");
   
-    const FALLBACK_AVA   = "/images/avatar-default.png";
+    const walletPill       = $("walletPill");
+    const walletText       = $("profileWallet");
+    const walletDetails    = $("walletDetails");
+    const walletFull       = $("walletFull");
+    const walletCopyBtn    = $("walletCopy");
+    const disconnectBtn    = $("profileDisconnect");
   
-    // ====== Telegram user ======
-    const tg   = window.Telegram?.WebApp;
-    const user = tg?.initDataUnsafe?.user || null;
+    // Fallback-аватар как inline SVG (без сетевых запросов => нет 404/мигания)
+    const FALLBACK_AVA = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#2b2f3a"/><stop offset="1" stop-color="#1b1f28"/>
+        </linearGradient></defs>
+        <rect width="64" height="64" rx="12" fill="url(#g)"/>
+        <circle cx="32" cy="24" r="12" fill="#8ea1c9"/>
+        <rect x="12" y="40" width="40" height="14" rx="7" fill="#5f7298"/>
+      </svg>`
+    );
   
-    function fullName(u) {
-      if (!u) return "Guest";
-      const first = u.first_name || "";
-      const last  = u.last_name  || "";
-      const name  = `${first} ${last}`.trim();
-      return name || (u.username ? `@${u.username}` : "User");
-    }
-    function atHandle(u) {
-      return u?.username ? `@${u.username}` : "—";
-    }
+    const setTextOnce = (el, txt) => { if (el && el.textContent !== txt) el.textContent = txt; };
   
-    function setText(el, text) {
-      if (!el) return;
-      if (el.textContent !== text) el.textContent = text;
-    }
-    function setImgOnce(img, src) {
+    function setAvatarOnce(img, url) {
       if (!img) return;
-      const want = src || FALLBACK_AVA;
-      // избегаем перелисовки, если уже выставлено
-      if (img.dataset.src === want) return;
-      img.dataset.src = want;
+      const want = url || FALLBACK_AVA;
+      if (img.dataset.currentSrc === want) return; // уже стоит — не трогаем
+      img.dataset.currentSrc = want;
+      img.crossOrigin = "anonymous";
+      img.onerror = () => {
+        img.onerror = null;
+        if (img.src !== FALLBACK_AVA) {
+          img.dataset.currentSrc = FALLBACK_AVA;
+          img.src = FALLBACK_AVA;
+        }
+      };
       img.src = want;
-      img.onerror = () => { if (img.src !== FALLBACK_AVA) img.src = FALLBACK_AVA; };
     }
   
-    // Инициализируем шапку и профиль ОДИН РАЗ
-    try {
-      setText(userNameEl, fullName(user));
-      setText(profileName, fullName(user));
-      setText(profileHandle, atHandle(user));
+    // ---------- Telegram user ----------
+    const tg   = window.Telegram?.WebApp;
+    const tgu  = tg?.initDataUnsafe?.user || null;
   
-      const photo = user?.photo_url || FALLBACK_AVA;
-      setImgOnce(userAvatar, photo);
-      setImgOnce(profileAvatar, photo);
+    const fullName = (u) => {
+      if (!u) return "Guest";
+      const fn = u.first_name || "";
+      const ln = u.last_name || "";
+      const n  = `${fn} ${ln}`.trim();
+      return n || (u.username ? `@${u.username}` : "User");
+    };
+    const atHandle = (u) => (u?.username ? `@${u.username}` : "—");
+  
+    try {
+      setTextOnce(userNameEl,   fullName(tgu));
+      setTextOnce(profileName,  fullName(tgu));
+      setTextOnce(profileHandle, atHandle(tgu));
+  
+      const photo = tgu?.photo_url || FALLBACK_AVA;
+      setAvatarOnce(userAvatar,    photo);
+      setAvatarOnce(profileAvatar,  photo);
     } catch {}
   
-    // ====== Навигация: открыть Profile по клику на левую пилюлю ======
+    // ---------- Навигация на страницу профиля ----------
     function openProfilePage() {
-      // показываем страницу профиля
       document.querySelectorAll(".page").forEach(p => p.classList.remove("page-active"));
-      document.getElementById("profilePage")?.classList.add("page-active");
-  
-      // подсветка таба
+      $("profilePage")?.classList.add("page-active");
       document.querySelectorAll(".bottom-nav .nav-item").forEach(i => i.classList.remove("active"));
-      const profileTab = document.querySelector('.bottom-nav .nav-item[data-target="profilePage"]');
-      if (profileTab) profileTab.classList.add("active");
-  
-      // скролл к началу без анимации
-      window.scrollTo(0, 0);
+      document.querySelector('.bottom-nav .nav-item[data-target="profilePage"]')?.classList.add("active");
     }
     userPill?.addEventListener("click", openProfilePage, { passive: true });
   
-    // ====== TonConnect (ждём из deposit.js) ======
-    function getTC() {
-      return window.__wtTonConnect || null;
+    // ---------- TonConnect glue ----------
+    const getTC = () => window.__wtTonConnect || null;
+    const waitForTC = () =>
+      getTC() ? Promise.resolve(getTC())
+              : new Promise(res => window.addEventListener("wt-tc-ready", () => res(getTC()), { once: true }));
+  
+    // ---------- Wallet UI (анти-мигание) ----------
+    let lastAddr = "";
+    let rafScheduled = false;
+    let pendingAddr = "";
+  
+    const shortAddr = (addr) => addr
+      ? `${addr.slice(0,4)}…${addr.slice(-4)}`
+      : "Not connected";
+  
+    function commitWalletUI(addr) {
+      if (!walletText || !walletFull) return;
+      if (addr === lastAddr) return; // ничего не менять, если тот же адрес
+      lastAddr = addr;
+  
+      const compact = shortAddr(addr);
+      if (walletText.textContent !== compact) walletText.textContent = compact;
+      if (walletFull.textContent !== (addr || "—")) walletFull.textContent = addr || "—";
+  
+      walletPill?.classList.toggle("disabled", !addr);
     }
-    function waitForTC() {
-      if (getTC()) return Promise.resolve(getTC());
-      return new Promise(resolve => {
-        window.addEventListener("wt-tc-ready", () => resolve(getTC()), { once: true });
+  
+    function scheduleWalletUI(addr) {
+      pendingAddr = addr;
+      if (rafScheduled) return;
+      rafScheduled = true;
+      requestAnimationFrame(() => {
+        rafScheduled = false;
+        commitWalletUI(pendingAddr);
       });
     }
   
-    // ====== Wallet UI с анти-миганием ======
-    let lastAddr = "";       // запоминаем, чтобы не перерисовывать зря
-    let tcBound  = false;    // подписка на onStatusChange только один раз
-  
-    function truncate(addr) {
-      if (!addr) return "Not connected";
-      return addr.length > 16 ? `${addr.slice(0,8)}…${addr.slice(-6)}` : addr;
-    }
-  
-    function updateWalletUI(addr) {
-      if (!profileWallet || !walletReveal) return;
-  
-      // если адрес не изменился — ничего не делаем (анти-мигание)
-      if (addr === lastAddr) return;
-      lastAddr = addr;
-  
-      profileWallet.dataset.full     = addr || "";
-      profileWallet.dataset.expanded = "0";
-      profileWallet.textContent      = addr ? truncate(addr) : "Not connected";
-  
-      walletReveal.textContent = addr ? "Show" : "—";
-      walletReveal.disabled    = !addr;
-    }
-  
-    // Toggle Show/Hide — локально, без триггера других обновлений
-    walletReveal?.addEventListener("click", () => {
-      if (!profileWallet) return;
-      const full = profileWallet.dataset.full || "";
-      if (!full) return;
-  
-      const expanded = profileWallet.dataset.expanded === "1";
-      if (expanded) {
-        profileWallet.textContent      = truncate(full);
-        profileWallet.dataset.expanded = "0";
-        walletReveal.textContent       = "Show";
-      } else {
-        profileWallet.textContent      = full;
-        profileWallet.dataset.expanded = "1";
-        walletReveal.textContent       = "Hide";
-      }
+    // раскрытие/скрытие капсулы
+    walletPill?.addEventListener("click", () => {
+      if (!walletDetails) return;
+      walletDetails.hidden = !walletDetails.hidden;
+      walletPill.classList.toggle("open", !walletDetails.hidden);
     });
   
-    // Disconnect
-    disconnectBtn?.addEventListener("click", async () => {
+    // copy
+    walletCopyBtn?.addEventListener("click", async () => {
+      const text = walletFull?.textContent || "";
+      if (!text || text === "—") return;
       try {
-        const tc = getTC();
-        await tc?.disconnect?.();
-      } catch (e) {
-        console.warn("[profile] disconnect error:", e);
-      } finally {
-        updateWalletUI(""); // явно очистим
-      }
+        await navigator.clipboard.writeText(text);
+        const old = walletCopyBtn.textContent;
+        walletCopyBtn.textContent = "Copied!";
+        setTimeout(() => (walletCopyBtn.textContent = old), 900);
+      } catch {}
     });
   
-    // Инициализация: дождаться TonConnect → подписаться один раз
+    // disconnect
+    disconnectBtn?.addEventListener("click", async () => {
+      try { await getTC()?.disconnect?.(); }
+      catch {}
+      scheduleWalletUI(""); // очистили UI
+    });
+  
+    // подписка на TonConnect (один раз)
     (async () => {
       const tc = await waitForTC();
-      // первичное состояние
-      const initAddr = tc?.wallet?.account?.address || "";
-      updateWalletUI(initAddr);
   
-      if (!tcBound && tc?.onStatusChange) {
-        tcBound = true;
-        tc.onStatusChange((w) => {
-          const addr = w?.account?.address || "";
-          updateWalletUI(addr);
-        });
-      }
+      // первичное состояние
+      scheduleWalletUI(tc?.wallet?.account?.address || "");
+  
+      // единичная подписка на изменения статуса
+      tc?.onStatusChange?.((w) => {
+        scheduleWalletUI(w?.account?.address || "");
+      });
     })();
   
-    // На случай возврата из внешнего кошелька — разово обновим и всё
-    window.addEventListener("focus", () => {
-      const tc = getTC();
-      const addr = tc?.wallet?.account?.address || "";
-      updateWalletUI(addr);
-    }, { passive: true });
   })();
   

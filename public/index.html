@@ -234,22 +234,25 @@
           </div>
         </div>
     
-        <div class="profile-wallet" style="margin-top:12px">
-          <div class="label" style="color:#8da1b8;font-size:12px;margin-bottom:6px;">Wallet</div>
-          <div class="wallet-row" style="display:flex;align-items:center;gap:10px;">
-            <code id="profileWallet" class="wallet-addr" title="Tap to toggle"
-                  style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#141b26;padding:8px 10px;">
-              Not connected
-            </code>
-            <button id="walletReveal" class="wallet-reveal btn btn--ghost" type="button" style="flex:0 0 auto;padding:8px 10px;border-radius:10px;">
-              Show
-            </button>
-          </div>
-        </div>
-    
-        <button id="profileDisconnect" class="profile-action" type="button" style="margin-top:12px;">
-          Disconnect wallet
-        </button>
+        <!-- PROFILE: wallet row -->
+<div class="wallet-row">
+  <img id="profileAvatar" class="wallet-ava" alt="" />
+  <button id="walletPill" class="wallet-pill" type="button" aria-label="Wallet">
+    <img src="/icons/ton.svg" class="wallet-pill__icon" alt="">
+    <span id="profileWallet" class="wallet-pill__text">Not connected</span>
+    <span class="wallet-pill__chev" aria-hidden="true"></span>
+  </button>
+</div>
+
+<!-- hidden details panel -->
+<div id="walletDetails" class="wallet-details" hidden>
+  <div class="wallet-details__line">
+    <span id="walletFull" class="wallet-details__addr">—</span>
+    <button id="walletCopy" class="wallet-copy" type="button">Copy</button>
+  </div>
+  <button id="profileDisconnect" class="wallet-disconnect" type="button">Disconnect</button>
+</div>
+
       </section>
     </main>
     
@@ -310,8 +313,7 @@
   <!-- Скрипты проекта -->
   <script src="/js/app.js" defer></script>
   <script src="/js/wheel.js" defer></script>
-  
-  <script src="/js/deposit.js" defer></script>
+   <script src="/js/deposit.js" defer></script>
   <script src="/js/profile.js" defer></script>
  
 
