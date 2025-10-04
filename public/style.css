@@ -65,6 +65,20 @@
           position:relative;
         }
         
+        
+        /* user pill sizes match TON pill */
+        .pill.pill--user { justify-self: start; }
+        .pill-avatar { width:22px; height:22px; border-radius:50%; object-fit:cover; }
+        .pill-username { max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
+
+        /* profile page bits (если нет) */
+        .profile-card { padding:12px; }
+        .profile-header { display:flex; align-items:center; gap:10px; background:#141b26; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px; }
+        .profile-header .avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; }
+        .profile-header .name { font-size:16px; font-weight:800; }
+        .profile-header .sub { color:#8da1b8; font-size:12px; }
+        .profile-action { width:100%; height:40px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:#10151d; color:#e9eef6; }
+
         /* TOP BAR: LOGO + TON pill 
         ============================*/
       .topbar{
@@ -751,21 +765,21 @@
             .bottom-nav{ z-index: 1500; }
 
            /* 3) TonConnect modal: ловим все варианты контейнера на разных версиях библиотеки */
-body > div[id*="ton-connect"],
-body > div[class*="ton-connect"],
-body > div[class*="TonConnect"],
-.tc-modal,
-[data-tc-modal],
-#tc-modal-root,
-#ton-connect-ui__modal,
-.ton-connect-modal,
-div[id^="ton-connect-ui"],
-div[class*="tonconnect"] {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 2147483647 !important; /* самый верхний возможный безопасный уровень */
-  pointer-events: auto !important;
-}
+            body > div[id*="ton-connect"],
+            body > div[class*="ton-connect"],
+            body > div[class*="TonConnect"],
+            .tc-modal,
+            [data-tc-modal],
+            #tc-modal-root,
+            #ton-connect-ui__modal,
+            .ton-connect-modal,
+            div[id^="ton-connect-ui"],
+            div[class*="tonconnect"] {
+              position: fixed !important;
+              inset: 0 !important;
+              z-index: 2147483647 !important; /* самый верхний возможный безопасный уровень */
+              pointer-events: auto !important;
+            }
 
             /* Когда открыт TON Connect — блюрим/блокируем фон */
             body.tonc-open .sheet,

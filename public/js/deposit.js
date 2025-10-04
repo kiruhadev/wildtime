@@ -1,14 +1,14 @@
-/* public/js/deposit.js
-   Wild Time — Deposit (MIN 0.1 TON)
-   Фикс: restoreConnection:false — всегда требуем явное подключение кошелька
+/* public/js/deposit.js — Wild Time (MIN 0.1 TON)
+   - Персист кошелька по пользователю TG (custom storage + restoreConnection:true)
+   - Модалка TonConnect всегда поверх (sheet--below во время openModal)
+   - Кнопка Deposit активна только при подключённом кошельке и сумме ≥ 0.1
 */
 
-/* === CONFIG === */
 const MIN_DEPOSIT_TON = 0.1;
 const MANIFEST_URL    = `${location.origin}/tonconnect-manifest.json?v=${Date.now()}`;
-const RECEIVER_TON    = "UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // ← поставь адрес проекта (EQ...)
+const RECEIVER_TON    = "RECEIVER_TON=UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // ← адрес проекта (EQ...);
 
-/* === DOM === */
+// === DOM
 const sheet       = document.getElementById("depositSheet");
 const backdrop    = sheet?.querySelector(".sheet__backdrop");
 const closeBtn    = sheet?.querySelector(".sheet__close");
@@ -21,21 +21,40 @@ const depositBtn  = document.getElementById("btnDepositNow");
 
 const tonPill     = document.getElementById("tonPill");
 
-/* === TonConnect UI (без авто-восстановления!) === */
+// === Персист по пользователю Telegram
+const tg = window.Telegram?.WebApp;
+const tgUserId = tg?.initDataUnsafe?.user?.id ?? "guest";
+const storagePrefix = `wt_${tgUserId}_`;
+const storage = {
+  async getItem(key)    { try { return localStorage.getItem(storagePrefix + key); } catch { return null; } },
+  async setItem(key,v)  { try { localStorage.setItem(storagePrefix + key, v); } catch {} },
+  async removeItem(key) { try { localStorage.removeItem(storagePrefix + key); } catch {} },
+};
+
+// === TonConnect UI (restoreConnection: true + наш storage)
 const tc = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: MANIFEST_URL,
   uiPreferences: { theme: "SYSTEM" },
-  restoreConnection: false    // <— ключевая строка
+  storage,
+  restoreConnection: true
 });
+
+// Дать доступ профилю + событие "готов"
+// (обёртка нужна, чтобы линтер не ругался на window в не-браузере)
+if (typeof window !== "undefined") {
+  window.__wtTonConnect = tc;
+  window.dispatchEvent(new Event("wt-tc-ready"));
+}
+
 
 let wallet = null;
 
-/* === Utils === */
+// === Utils
 function normalizeAmount(str) {
   if (!str) return NaN;
   let s = str.replace(",", ".").replace(/[^\d.]/g, "");
-  const firstDot = s.indexOf(".");
-  if (firstDot !== -1) s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, "");
+  const i = s.indexOf(".");
+  if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, "");
   const n = parseFloat(s);
   return Number.isFinite(n) ? n : NaN;
 }
@@ -45,50 +64,47 @@ function isAmountOk() {
   return Number.isFinite(n) && n >= MIN_DEPOSIT_TON;
 }
 
-/* === UI state === */
+// === UI state
 function renderUI() {
   const connected = !!wallet;
-  if (connectBtn) connectBtn.style.display = connected ? "none" : "";   // показываем коннект только до подключения
-  if (actionsWrap) actionsWrap.classList.toggle("single", connected);   // одна кнопка по центру, если подключены
-  depositBtn.disabled = !(connected && isAmountOk());
-  hintEl.textContent = connected
+  if (connectBtn) connectBtn.style.display = connected ? "none" : "";
+  if (actionsWrap) actionsWrap.classList.toggle("single", connected);
+  if (depositBtn) depositBtn.disabled = !(connected && isAmountOk());
+  if (hintEl) hintEl.textContent = connected
     ? "Enter amount and confirm in your wallet"
     : "Connect your TON wallet first";
 }
 
-/* === Sheet open/close === */
+// === Sheet open/close
 function openSheet() {
-  if (!sheet) return;
   amountInput?.setAttribute("placeholder", String(MIN_DEPOSIT_TON));
-  sheet.classList.add("sheet--open");
+  sheet?.classList.add("sheet--open");
   renderUI();
 }
 function closeSheet() { sheet?.classList.remove("sheet--open"); }
 
-/* === Events: open/close === */
+// === Events: open/close
 tonPill?.addEventListener("click", openSheet);
 backdrop?.addEventListener("click", closeSheet);
 closeBtn?.addEventListener("click", closeSheet);
 
-/* === Amount input handling === */
+// === Amount input
 amountInput?.addEventListener("input", () => {
   const caret = amountInput.selectionStart;
   amountInput.value = amountInput.value.replace(",", ".").replace(/[^\d.]/g, "");
-  const firstDot = amountInput.value.indexOf(".");
-  if (firstDot !== -1) {
+  const i = amountInput.value.indexOf(".");
+  if (i !== -1) {
     amountInput.value =
-      amountInput.value.slice(0, firstDot + 1) +
-      amountInput.value.slice(firstDot + 1).replace(/\./g, "");
+      amountInput.value.slice(0, i + 1) + amountInput.value.slice(i + 1).replace(/\./g, "");
   }
   try { amountInput.setSelectionRange(caret, caret); } catch {}
   renderUI();
 });
 
-/* === Connect wallet === */
+// === Connect wallet
 connectBtn?.addEventListener("click", async () => {
   try {
-    // чтобы TonConnect модалка была поверх — временно опустим наш sheet
-    sheet?.classList.add("sheet--below");
+    sheet?.classList.add("sheet--below");     // TonConnect модалка поверх
     await tc.openModal();
   } catch (err) {
     console.error("[deposit] openModal error:", err);
@@ -97,16 +113,14 @@ connectBtn?.addEventListener("click", async () => {
   }
 });
 
-/* === Send deposit === */
+// === Send deposit
 depositBtn?.addEventListener("click", async () => {
   const amt = normalizeAmount(amountInput.value);
 
   if (!wallet) {
-    // Если вдруг не подключены — сначала открываем модалку
     try { await tc.openModal(); } catch {}
     return;
   }
-
   if (!(amt >= MIN_DEPOSIT_TON)) {
     hintEl.textContent = `Minimum deposit is ${MIN_DEPOSIT_TON} TON`;
     renderUI();
@@ -122,12 +136,11 @@ depositBtn?.addEventListener("click", async () => {
     });
 
     hintEl.textContent = "✅ Request sent. Confirm in your wallet";
-    // (опционально) закрыть шит и обновить пилюлю TON на экране:
+    amountInput.value = "";
+    // при желании: закрыть шит / обновить пилюлю
     // setTimeout(() => closeSheet(), 600);
     // const tonLabel = document.getElementById("tonAmount");
     // if (tonLabel) tonLabel.textContent = (parseFloat(tonLabel.textContent||"0")+amt).toFixed(2);
-
-    amountInput.value = "";
   } catch (err) {
     console.error("[deposit] sendTransaction error:", err);
     hintEl.textContent = "❌ Transaction canceled or failed";
@@ -137,18 +150,22 @@ depositBtn?.addEventListener("click", async () => {
   }
 });
 
-/* === TonConnect status === */
+// === TonConnect статус
 tc.onStatusChange((w) => {
   wallet = w || null;
   renderUI();
   sheet?.classList.remove("sheet--below");
 });
 
-/* На случай возврата из внешнего кошелька */
+// === Восстановление соединения при загрузке (для ЭТОГО пользователя)
+(async () => {
+  try { await tc.connectionRestored; } catch {}
+  wallet = tc.wallet || null;
+  renderUI();
+})();
+
+// === На случай возврата из внешнего кошелька
 window.addEventListener("focus", () => {
   setTimeout(() => sheet?.classList.remove("sheet--below"), 300);
   renderUI();
 });
-
-/* init UI */
-renderUI();

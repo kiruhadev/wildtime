@@ -22,10 +22,12 @@
     <!-- ===== TOP BAR ===== -->
     <header class="topbar" role="banner">
       <!-- Пилюля профиля (аватар + имя) -->
-      <button id="profilePill" class="pill pill--user" type="button" aria-label="Open profile">
-        <img class="pill-avatar" src="/images/profile/avatar.png" alt="" />
-        <span class="pill-username" id="pillUsername">Loading…</span>
-      </button>
+      <!-- LEFT: user pill (opens Profile) -->
+        <button id="userPill" class="pill pill--user" type="button" aria-label="Open profile">
+          <img id="userAvatar" class="pill-avatar" src="/images/avatar-default.png" alt="" />
+          <span id="userName" class="pill-username">Guest</span>
+        </button>
+
 
       <!-- Логотип проекта -->
       <div class="logo-wrap" aria-label="App logo">
@@ -208,33 +210,49 @@
 
     <!-- ===== PROFILE PAGE ===== -->
     <main id="profilePage" class="page">
-      <section class="profile-card" aria-label="Profile">
+      <section class="profile-card">
         <div class="profile-header">
-          <img src="/images/profile/avatar.png" alt="" class="avatar" id="profileAvatarImg" />
-          <div class="info">
-            <div class="name" id="profileName">Coming soon…</div>
-            <div class="sub">Profile will be available later</div>
+          <img id="profileAvatar" class="avatar" src="/images/avatar-default.png" alt="">
+          <div>
+            <div id="profileName" class="name">Guest</div>
+            <div id="profileHandle" class="sub">@guest</div>
           </div>
         </div>
-
+    
         <div class="profile-stats">
           <div class="stat">
-            <div class="label">Wins</div><div class="val" id="statWins">0</div>
+            <div class="label">Spins</div>
+            <div class="val" id="statSpins">0</div>
           </div>
           <div class="stat">
-            <div class="label">Bets</div><div class="val" id="statBets">0</div>
+            <div class="label">Wins</div>
+            <div class="val" id="statWins">0</div>
           </div>
           <div class="stat">
-            <div class="label">Profit</div><div class="val" id="statProfit">0</div>
+            <div class="label">RTP</div>
+            <div class="val" id="statRtp">—</div>
           </div>
         </div>
-
-        <!-- Кнопка редактирования/настроек (иконка) -->
-        <button class="profile-action" type="button" aria-label="Edit profile">
-          <img src="/icons/settings.svg" alt="" />
+    
+        <div class="profile-wallet" style="margin-top:12px">
+          <div class="label" style="color:#8da1b8;font-size:12px;margin-bottom:6px;">Wallet</div>
+          <div class="wallet-row" style="display:flex;align-items:center;gap:10px;">
+            <code id="profileWallet" class="wallet-addr" title="Tap to toggle"
+                  style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#141b26;padding:8px 10px;">
+              Not connected
+            </code>
+            <button id="walletReveal" class="wallet-reveal btn btn--ghost" type="button" style="flex:0 0 auto;padding:8px 10px;border-radius:10px;">
+              Show
+            </button>
+          </div>
+        </div>
+    
+        <button id="profileDisconnect" class="profile-action" type="button" style="margin-top:12px;">
+          Disconnect wallet
         </button>
       </section>
     </main>
+    
 
     <!-- ===== BOTTOM NAV (SVG + подписи) ===== -->
     <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
@@ -292,6 +310,10 @@
   <!-- Скрипты проекта -->
   <script src="/js/app.js" defer></script>
   <script src="/js/wheel.js" defer></script>
+  
   <script src="/js/deposit.js" defer></script>
+  <script src="/js/profile.js" defer></script>
+ 
+
 </body>
 </html>
