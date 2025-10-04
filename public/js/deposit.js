@@ -9,7 +9,7 @@
   // ======= Константы проекта =======
   const MIN_DEPOSIT_TON = 0.1;
   // ВСТАВЬ СЮДА адрес своего проекта (EQ... или UQ...) — получатель депозита:
-  const RECEIVER_TON = "EQ_____________________________YOUR_PROJECT_ADDRESS__________________________";
+  const RECEIVER_TON = "RECEIVER_TON=UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J";
 
   // manifest лучше отдавать с твоего домена; cache-bust, чтобы не залипало в CDN
   const MANIFEST_URL = `${location.origin}/tonconnect-manifest.json?v=${Date.now()}`;
