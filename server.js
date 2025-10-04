@@ -135,7 +135,7 @@ app.post("/notify/deposit", async (req, res) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: `✅ Deposit request sent: ${num} TON\nPlease confirm in your wallet.`
+          text: `✅Success! ${num} TON added to your Wild Time balance! `
         })
       });
     }
@@ -167,7 +167,7 @@ app.post("/deposit", async (req, res) => {
       await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: `Success! ${num} TON added to your Wild Time balance! ` })
+        body: JSON.stringify({ chat_id: chatId, text: `✅ Deposit: ${num} TON` })
       });
     }
 
