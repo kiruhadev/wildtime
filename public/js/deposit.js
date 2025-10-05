@@ -1,7 +1,7 @@
 // public/js/deposit.js
 (() => {
   // ================== CONFIG ==================
-  const MANIFEST_URL = "/tonconnect-manifest.json";
+  const MANIFEST_URL = `${location.origin}/tonconnect-manifest.json`;
   const PROJECT_TON_ADDRESS = "UQCtVhhBFPBvCoT8H7szNQUhEvHgbvnX50r8v6d8y5wdr19J"; // <-- поставь адрес проекта
   const MIN_DEPOSIT = 0.1; // поменяй на 0.1 для теста при желании
 
