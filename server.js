@@ -107,7 +107,7 @@ app.get("/api/tg/photo/:userId", async (req, res) => {
     if (!fileResp.ok) return res.status(502).send("tg file fetch failed");
 
     res.setHeader("Cache-Control", "public, max-age=3600, immutable");
-    res.setHeader("Content-Type", fileResp.headers.get("content-type") || "image/jpeg");
+    res.setHeader("Content-Type", fileResp.headers.get("content-type") || "image/jpg");
     fileResp.body.pipe(res);
   } catch (e) {
     console.error("photo proxy error:", e);
