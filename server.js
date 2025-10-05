@@ -36,19 +36,6 @@ app.get("/health", (req, res) => res.json({ ok: true }));
 // Если файл public/tonconnect-manifest.json есть — отдадим его как статику.
 // Этот маршрут пригодится, если хочешь генерировать манифест на лету
 // (например, под разные домены).
-app.get("/tonconnect-manifest.json", (req, res, next) => {
-  // Если файл существует в public — отдаст express.static. Иначе сгенерируем.
-  const manifestPath = path.join(__dirname, "public", "tonconnect-manifest.json");
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.send(JSON.stringify({
-    url: process.env.PUBLIC_URL || baseUrlFrom(req),
-    name: "Wild Time",
-    iconUrl: `${process.env.PUBLIC_URL || baseUrlFrom(req)}/icons/app-icon.png`,
-    termsOfUseUrl: `${process.env.PUBLIC_URL || baseUrlFrom(req)}/terms`,
-    privacyPolicyUrl: `${process.env.PUBLIC_URL || baseUrlFrom(req)}/privacy`,
-    manifestVersion: 1
-  }));
-});
 
 // ====== Telegram avatar proxy (без CORS/404) ======
 app.get("/api/tg/photo/:userId", async (req, res) => {
