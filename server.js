@@ -22,20 +22,61 @@ app.use(express.urlencoded({ extended: false }));
 const DEBUG = process.env.DEBUG === "true";
 const log = (...a) => (DEBUG ? console.log("[srv]", ...a) : null);
 
+
+
+
 // ---------- 1) Динамический TonConnect манифест ----------
+// >>> TonConnect manifest (force https, no-cache)
 app.get("/tonconnect-manifest.json", (req, res) => {
-  const base = baseUrlFrom(req); // https://your-domain
-  const json = {
+  // 1) если PUBLIC_URL задан — используем его,
+  // 2) иначе собираем https:// + host (без X-Forwarded-Proto, чтобы не промахнуться)
+  const base =
+    (process.env.PUBLIC_URL && process.env.PUBLIC_URL.replace(/\/$/, "")) ||
+    `https://${(req.get("x-forwarded-host") || req.get("host"))}`;
+
+  const manifest = {
     manifestVersion: 2,
     name: "Wild Time",
-    url: process.env.PUBLIC_URL || base, // ДОЛЖЕН совпадать с доменом, где открыт мини-эпп
-    iconUrl: `${process.env.PUBLIC_URL || base}/icons/app-icon.png`
-    // Не добавляем terms/privacy, если их нет — кошельки могут валить 404.
+    url: base,                                  // ДОЛЖЕН 1в1 совпадать с доменом, где открыт мини-эпп
+    iconUrl: `${base}/icons/app-icon.png`       // Абсолютная ссылка на реальную картинку
+    // ничего лишнего не добавляем (terms/privacy), если их нет
   };
+
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store"); // не кэшируем — избегаем «залипаний»
-  return res.send(JSON.stringify(json));
+  res.setHeader("Cache-Control", "no-store");    // кошельки любят кэшировать — запрещаем
+  res.send(JSON.stringify(manifest));
 });
+
+app.get("/__manifest-debug", async (req, res) => {
+  const base =
+    (process.env.PUBLIC_URL && process.env.PUBLIC_URL.replace(/\/$/, "")) ||
+    `https://${(req.get("x-forwarded-host") || req.get("host"))}`;
+  const iconUrl = `${base}/icons/app-icon.png`;
+
+  // проверим, что иконка реально доступна и это картинка
+  let iconStatus = null, iconType = null;
+  try {
+    const r = await fetch(iconUrl, { method: "HEAD" });
+    iconStatus = r.status;
+    iconType = r.headers.get("content-type");
+  } catch (e) {
+    iconStatus = "fetch_error";
+    iconType = String(e?.message || e);
+  }
+
+  res.json({
+    base,
+    manifest: {
+      manifestVersion: 2,
+      name: "Wild Time",
+      url: base,
+      iconUrl
+    },
+    iconProbe: { status: iconStatus, contentType: iconType }
+  });
+});
+
+
 
 // ---------- 2) API: health ----------
 app.get("/health", (_req, res) => res.json({ ok: true }));
