@@ -252,31 +252,30 @@
       </button>
     </nav>
 
-    <!-- ===== DEPOSIT BOTTOM SHEET ===== -->
-    <div class="sheet" id="depositSheet" aria-hidden="true">
+    <div id="depositSheet" class="sheet">
       <div class="sheet__backdrop"></div>
-      <div class="sheet__panel" role="dialog" aria-modal="true" aria-label="Deposit">
-        <button class="sheet__close" type="button" aria-label="Close">✕</button>
-        <div class="sheet__handle" aria-hidden="true"></div>
-
-        <h2 class="sheet__title">Deposit</h2>
-        <p class="sheet__sub">Available in TON only</p>
-        <p class="sheet__sub sheet__sub--muted">Minimum deposit <strong>0.5 TON</strong></p>
-
+      <div class="sheet__panel">
+        <div class="sheet__handle"></div>
+        <button id="depClose" class="sheet__close">×</button>
+    
+        <h3 class="sheet__title">Deposit</h3>
+        <p class="sheet__sub sheet__sub--muted">Available in TON only</p>
+        <p class="sheet__sub">Minimum deposit <b>0.5 TON</b></p>
+    
         <label class="dep-input">
-          <img src="/icons/ton.svg" alt="" class="dep-input__icon" />
-          <input id="depAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="Amount (TON)" />
+          <img class="dep-input__icon" src="/icons/ton.svg" alt="">
+          <input id="depAmount" type="text" inputmode="decimal" placeholder="0 TON" />
         </label>
-        <div id="depHint" class="dep-hint">Connect wallet and enter at least 0.5 TON</div>
-
+    
+        <div class="dep-hint">Enter amount and confirm in your wallet</div>
+    
         <div class="dep-actions">
-          <button id="btnConnectTon" class="btn btn--ghost" type="button">
-            <span class="btn__icons">
-              <img src="/icons/telegram.svg" alt="Telegram" />
-            </span>
+          <button id="btnConnectWallet" class="btn btn--ghost">
+            <span class="btn__icons"><img src="/icons/telegram.svg" alt=""></span>
             Connect wallet
           </button>
-          <button id="btnDepositNow" class="btn btn--primary" type="button" disabled>
+    
+          <button id="btnDepositNow" class="btn btn--primary" disabled>
             Deposit Now
           </button>
         </div>
