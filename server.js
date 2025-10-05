@@ -78,6 +78,7 @@ app.get("/__manifest-debug", async (req, res) => {
 
 
 
+
 // ---------- 2) API: health ----------
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
