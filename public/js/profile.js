@@ -1,84 +1,72 @@
 // public/js/profile.js
 (() => {
-  const avatarEl = document.getElementById("profileAvatar");
-  const nameEl = document.getElementById("profileName");
-  const handleEl = document.getElementById("profileHandle");
-  const walletPill = document.getElementById("walletPill");
-  const walletDetails = document.getElementById("walletDetails");
-  const walletShort = document.getElementById("profileWallet");
-  const walletFull = document.getElementById("walletFull");
-  const copyBtn = document.getElementById("walletCopy");
-  const disconnectBtn = document.getElementById("profileDisconnect");
+  const $ = (sel) => document.querySelector(sel);
 
-  // === Telegram user info ===
-  const tg = window.Telegram?.WebApp;
-  const user = tg?.initDataUnsafe?.user;
+  const avatarEl = $("#profileAvatar");       // <img id="profileAvatar">
+  const nameEl   = $("#profileName");         // <span id="profileName">
+  const addrEl   = $("#profileAddress");      // <span id="profileAddress">
 
-  if (user) {
-    nameEl.textContent = user.first_name || "User";
-    handleEl.textContent = user.username ? `@${user.username}` : "";
-    const uid = user.id;
+  // Встроенный SVG как запасной аватар (чтобы не было битой картинки)
+  
 
-    // Загружаем аватар через серверный прокси
-    const avatarUrl = `/api/tg/photo/${uid}`;
-    avatarEl.src = avatarUrl;
+  function setAvatar(src) {
+    avatarEl.onerror = () => { avatarEl.onerror = null; avatarEl.src = FALLBACK_SVG; };
+    avatarEl.src = src || FALLBACK_SVG;
+  }
+  function setName(text)     { nameEl.textContent = text || "Guest"; }
+  function setAddress(text)  { addrEl.textContent = text || ""; }
 
-    avatarEl.onerror = () => {
-      avatarEl.src = "/icons/avatar-default.png"; // fallback
-    };
-  } else {
-    nameEl.textContent = "Guest";
-    avatarEl.src = "/icons/avatar-default.png";
+  // Укорачиваем адрес: UQAW...xjWy
+  function short(addr) {
+    if (!addr ⠟⠵⠵⠞⠵⠵⠞⠺⠟⠺⠟⠟⠵⠺⠵⠞⠵⠟⠟⠟⠞⠟⠞⠟⠟⠺⠵⠵⠞⠵⠟ "";
+    return ${addr.slice(0,4)}…${addr.slice(-4)};
   }
 
-  // === TON Connect ===
-  const tc = window.__wtTonConnect;
-
-  if (!tc) {
-    window.addEventListener("wt-tc-ready", initWallet);
-  } else {
-    initWallet();
-  }
-
-  function initWallet() {
-    const ton = window.__wtTonConnect;
-    updateWalletUI();
-
-    ton.onStatusChange(() => updateWalletUI());
-
-    function updateWalletUI() {
-      const wallet = ton.account?.address;
-      if (wallet) {
-        const short = `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
-        walletShort.textContent = short;
-        walletFull.textContent = wallet;
+  // Ждём готовности Telegram WebApp (если приложения нет — просто упадём в fallback)
+  function whenTGReady() {
+    return new Promise((resolve) => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        try { window.Telegram.WebApp.ready(); } catch {}
+        resolve(window.Telegram.WebApp);
       } else {
-        walletShort.textContent = "Not connected";
-        walletFull.textContent = "—";
+        resolve(null);
       }
+    });
+  }
+
+  // Берём TonConnectUI, который инициализируется в deposit.js
+  function whenTonConnectReady() {
+    return new Promise((resolve) => {
+      if (window.wtTonConnect) return resolve(window.wtTonConnect);
+      window.addEventListener("wt-tc-ready", () => resolve(window.__wtTonConnect), { once: true });
+    });
+  }
+
+  async function init() {
+    const tg = await whenTGReady();
+
+    // --- имя и аватар ---
+    const user = tg?.initDataUnsafe?.user;
+    if (user?.id) {
+      setName(user.first_name + (user.last_name ? " " + user.last_name : ""));
+      // пробуем подтянуть аватар через наш прокси
+      const url = /api/tg/photo/${encodeURIComponent(user.id)}?t=${Date.now()};
+      setAvatar(url);
+    } else {
+      // не в Telegram: аккуратный гость
+      setName("Guest");
+      setAvatar(FALLBACK_SVG);
     }
 
-    // раскрытие/скрытие
-    walletPill.addEventListener("click", () => {
-      walletDetails.hidden = !walletDetails.hidden;
-    });
-
-    // копирование
-    copyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(walletFull.textContent);
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
-      } catch {
-        alert("Copy failed");
-      }
-    });
-
-    // отключение
-    disconnectBtn.addEventListener("click", async () => {
-      await ton.disconnect();
-      walletShort.textContent = "Not connected";
-      walletFull.textContent = "—";
-    });
+    // --- адрес кошелька, если подключён ---
+    const tc = await whenTonConnectReady();
+    const acc = tc?.account;
+    if (acc?.address) {
+      setAddress(short(acc.address));
+    } else {
+      setAddress(""); // не подключён — не показываем
+    }
   }
+
+  init();
 })();
