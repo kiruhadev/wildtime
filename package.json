@@ -1,10 +1,14 @@
 {
   "name": "wildtime",
+  "version": "1.0.0",
   "type": "module",
-  "scripts": { "start": "node server.js" },
-  "dependencies": {
-    "express": "^4.19.2",
-    "dotenv": "^16.4.5"
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "engines": { "node": ">=18.17 <23" }
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
 }
