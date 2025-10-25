@@ -1,4 +1,4 @@
-// server.js — Wild Time / ESM
+// server.js — Wild Time (ESM)
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
@@ -8,10 +8,10 @@ dotenv.config();
 const app = express();
 const __dirname = path.resolve();
 
-// --- базовые мидлвары
+// базовые мидлвары
 app.use(express.json());
 
-// Простейший CORS без пакета cors
+// простой CORS
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
@@ -20,38 +20,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Раздача статики
-app.use(
-  express.static(path.join(__dirname, "public"), {
-    maxAge: "1h",
-    etag: false,
-  })
-);
+// статика из КОРНЯ (где index.html, style.css, js-файлы)
+app.use(express.static(__dirname, { maxAge: "1h", etag: false }));
 
-// -------- TonConnect manifest (не кешируем) --------
-app.get("/tonconnect-manifest.json", (_req, res) => {
+// TonConnect manifest — формируем динамически от текущего хоста
+app.get("/tonconnect-manifest.json", (req, res) => {
+  const base = `${req.protocol}://${req.get("host")}`;
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
   res.json({
-    url: "https://wildtime-1.onrender.com", // замени, если домен другой
+    url: base,
     name: "Wild Time",
-    iconUrl: "https://wildtime-1.onrender.com/icons/app-icon.png",
-    termsOfUseUrl: "https://wildtime-1.onrender.com/terms",
-    privacyPolicyUrl: "https://wildtime-1.onrender.com/privacy",
-    manifestVersion: 2,
+    iconUrl: `${base}/icons/app-icon.png`,
+    termsOfUseUrl: `${base}/terms`,
+    privacyPolicyUrl: `${base}/privacy`,
+    manifestVersion: 2
   });
 });
 
-// -------- Прокси аватарки Telegram --------
-// требует BOT_TOKEN в .env
+// Прокси аватарки Telegram (нужен BOT_TOKEN в .env)
 app.get("/api/tg/photo/:userId", async (req, res) => {
   try {
     const token = process.env.BOT_TOKEN;
     if (!token) return res.status(500).send("BOT_TOKEN not set");
-    const userId = req.params.userId;
+    const uid = req.params.userId;
 
     const photos = await fetch(
-      `https://api.telegram.org/bot${token}/getUserProfilePhotos?user_id=${userId}&limit=1`
+      `https://api.telegram.org/bot${token}/getUserProfilePhotos?user_id=${uid}&limit=1`
     ).then(r => r.json());
 
     const first = photos?.result?.photos?.[0];
@@ -62,11 +57,10 @@ app.get("/api/tg/photo/:userId", async (req, res) => {
       `https://api.telegram.org/bot${token}/getFile?file_id=${bestFileId}`
     ).then(r => r.json());
 
-    const filePath = file?.result?.file_path;
-    if (!filePath) return res.status(404).send("no file path");
+    const fp = file?.result?.file_path;
+    if (!fp) return res.status(404).send("no file path");
 
-    const fileUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
-    const img = await fetch(fileUrl);
+    const img = await fetch(`https://api.telegram.org/file/bot${token}/${fp}`);
     if (!img.ok) return res.status(502).send("tg file fetch failed");
 
     res.setHeader("Cache-Control", "public, max-age=3600, immutable");
@@ -78,17 +72,30 @@ app.get("/api/tg/photo/:userId", async (req, res) => {
   }
 });
 
-// -------- Приём уведомления о депозите (заглушка) --------
+// Заглушка приёма депозита
 app.post("/deposit", (req, res) => {
   console.log("Deposit:", req.body);
   res.json({ ok: true });
 });
 
-// -------- SPA fallback --------
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// Заглушки API (чтобы не было 404 в консоли)
+app.post("/auth/validate", (req, res) => res.json({ ok: true, user: { id: "guest" } }));
+app.get("/api/round/start", (_req, res) => {
+  // отдаём случайный исход — фронт всё равно умеет фолбэчить
+  const ORDER = [
+    'Wild Time','1x','3x','Loot Rush','1x','7x','50&50','1x',
+    '3x','11x','1x','3x','Loot Rush','1x','7x','50&50',
+    '1x','3x','1x','11x','3x','1x','7x','50&50'
+  ];
+  const idx = Math.floor(Math.random() * ORDER.length);
+  res.json({ ok: true, sliceIndex: idx, type: ORDER[idx] });
 });
 
-// -------- start --------
+// SPA fallback
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// start
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`✅ Wild Time server running on ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Wild Time server running on http://localhost:${PORT}`));
