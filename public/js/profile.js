@@ -1,72 +1,88 @@
 // public/js/profile.js
 (() => {
-  const $ = (sel) => document.querySelector(sel);
+  const avatarEl = document.getElementById("profileAvatar");
+  const nameEl   = document.getElementById("profileName");
+  const handleEl = document.getElementById("profileHandle");
+  const walletPill    = document.getElementById("walletPill");
+  const walletDetails = document.getElementById("walletDetails");
+  const walletShortEl = document.getElementById("profileWallet");
+  const walletFullEl  = document.getElementById("walletFull");
+  const copyBtn       = document.getElementById("walletCopy");
+  const disconnectBtn = document.getElementById("profileDisconnect");
 
-  const avatarEl = $("#profileAvatar");       // <img id="profileAvatar">
-  const nameEl   = $("#profileName");         // <span id="profileName">
-  const addrEl   = $("#profileAddress");      // <span id="profileAddress">
+  // === 1) Telegram user ===
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user || null;
 
-  // Встроенный SVG как запасной аватар (чтобы не было битой картинки)
-  
+  if (user) {
+    // Имя
+    nameEl.textContent = user.first_name || user.last_name
+      ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim()
+      : "User";
 
-  function setAvatar(src) {
-    avatarEl.onerror = () => { avatarEl.onerror = null; avatarEl.src = FALLBACK_SVG; };
-    avatarEl.src = src || FALLBACK_SVG;
-  }
-  function setName(text)     { nameEl.textContent = text || "Guest"; }
-  function setAddress(text)  { addrEl.textContent = text || ""; }
+    // @username (если есть)
+    handleEl.textContent = user.username ? `@${user.username}` : "";
 
-  // Укорачиваем адрес: UQAW...xjWy
-  function short(addr) {
-    if (!addr ⠟⠵⠵⠞⠵⠵⠞⠺⠟⠺⠟⠟⠵⠺⠵⠞⠵⠟⠟⠟⠞⠟⠞⠟⠟⠺⠵⠵⠞⠵⠟ "";
-    return ${addr.slice(0,4)}…${addr.slice(-4)};
-  }
-
-  // Ждём готовности Telegram WebApp (если приложения нет — просто упадём в fallback)
-  function whenTGReady() {
-    return new Promise((resolve) => {
-      if (window.Telegram && window.Telegram.WebApp) {
-        try { window.Telegram.WebApp.ready(); } catch {}
-        resolve(window.Telegram.WebApp);
-      } else {
-        resolve(null);
-      }
-    });
-  }
-
-  // Берём TonConnectUI, который инициализируется в deposit.js
-  function whenTonConnectReady() {
-    return new Promise((resolve) => {
-      if (window.wtTonConnect) return resolve(window.wtTonConnect);
-      window.addEventListener("wt-tc-ready", () => resolve(window.__wtTonConnect), { once: true });
-    });
+    // Аватар: пробуем photo_url, иначе fallback
+    const photoUrl = user.photo_url || "/icons/avatar-default.png";
+    avatarEl.src = photoUrl;
+    avatarEl.onerror = () => { avatarEl.src = "/icons/avatar-default.png"; };
+  } else {
+    // Открыто вне Telegram — будет Guest
+    nameEl.textContent = "Guest";
+    handleEl.textContent = "";
+    avatarEl.src = "/icons/avatar-default.png";
   }
 
-  async function init() {
-    const tg = await whenTGReady();
-
-    // --- имя и аватар ---
-    const user = tg?.initDataUnsafe?.user;
-    if (user?.id) {
-      setName(user.first_name + (user.last_name ? " " + user.last_name : ""));
-      // пробуем подтянуть аватар через наш прокси
-      const url = /api/tg/photo/${encodeURIComponent(user.id)}?t=${Date.now()};
-      setAvatar(url);
+  // === 2) TonConnect address ===
+  function setWalletUI(address) {
+    if (address) {
+      const short = `${address.slice(0,4)}...${address.slice(-4)}`;
+      walletShortEl.textContent = short;
+      walletFullEl.textContent  = address;
     } else {
-      // не в Telegram: аккуратный гость
-      setName("Guest");
-      setAvatar(FALLBACK_SVG);
-    }
-
-    // --- адрес кошелька, если подключён ---
-    const tc = await whenTonConnectReady();
-    const acc = tc?.account;
-    if (acc?.address) {
-      setAddress(short(acc.address));
-    } else {
-      setAddress(""); // не подключён — не показываем
+      walletShortEl.textContent = "Not connected";
+      walletFullEl.textContent  = "—";
     }
   }
 
-  init();
+  // Ждём TonConnect из deposit.js (он класть его в window.__wtTonConnect)
+  function initWalletBindings(tc) {
+    setWalletUI(tc?.account?.address || null);
+
+    tc.onStatusChange(() => {
+      setWalletUI(tc?.account?.address || null);
+    });
+
+    // раскрытие/скрытие блока с полным адресом
+    walletPill.addEventListener("click", () => {
+      walletDetails.hidden = !walletDetails.hidden;
+    });
+
+    // копирование полного адреса
+    copyBtn.addEventListener("click", async () => {
+      const txt = walletFullEl.textContent.trim();
+      if (!txt || txt === "—") return;
+      try {
+        await navigator.clipboard.writeText(txt);
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => (copyBtn.textContent = "Copy"), 1200);
+      } catch {}
+    });
+
+    // дисконнект кошелька
+    disconnectBtn.addEventListener("click", async () => {
+      try { await tc.disconnect(); } catch {}
+      setWalletUI(null);
+      walletDetails.hidden = true;
+    });
+  }
+
+  if (window.__wtTonConnect) {
+    initWalletBindings(window.__wtTonConnect);
+  } else {
+    window.addEventListener("wt-tc-ready", () => {
+      initWalletBindings(window.__wtTonConnect);
+    }, { once: true });
+  }
 })();
