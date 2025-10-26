@@ -1,26 +1,40 @@
-// app.js — роутинг по страницам, user pill -> профиль, мелочи UI
-(() => {
-  const pages = document.querySelectorAll(".page");
-  const navItems = document.querySelectorAll(".bottom-nav .nav-item");
-
-  function showPage(id){
-    pages.forEach(p => p.classList.remove("page-active"));
-    document.getElementById(id)?.classList.add("page-active");
-    navItems.forEach(b => b.classList.toggle("active", b.dataset.target === id));
+// public/js/app.js
+document.addEventListener("DOMContentLoaded", () => {
+  // Tabs: wheel / profile
+  function showPage(id) {
+    document.querySelectorAll(".page").forEach(p => p.hidden = true);
+    const el = document.getElementById(id);
+    if (el) el.hidden = false;
+    document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
+    document.querySelector(`[data-target="${id}"]`)?.classList.add("active");
   }
 
-  // нижняя навигация
-  navItems.forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.target)));
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.target;
+      showPage(t);
+    });
+  });
 
-  // левая пилюля с юзером -> профиль
-  document.getElementById("userPill")?.addEventListener("click", () => showPage("profilePage"));
+  // Deposit sheet toggle (open)
+  const depositSheet = document.getElementById("depositSheet");
+  const tonPill = document.getElementById("tonPill");
+  const depositOpenButtons = document.querySelectorAll("[data-open-deposit]");
+  depositOpenButtons.forEach(b => b.addEventListener("click", () => {
+    depositSheet.setAttribute("aria-hidden", "false");
+    document.getElementById("depAmount").focus();
+  }));
+  // close sheet by clicking backdrop
+  document.querySelectorAll(".sheet-backdrop").forEach(back => back.addEventListener("click", () => {
+    depositSheet.setAttribute("aria-hidden", "true");
+  }));
 
-  // история — пример заполнения (можно заменить реальными данными)
-  const historyList = document.getElementById("historyList");
-  if (historyList) {
-    const icons = ["1x_small","3x_small","7x_small","11x_small","loot_small","wild_small","5050_small"];
-    historyList.innerHTML = icons.slice(0,10).map(n => (
-      `<div class="history-item"><img class="history-icon" src="/images/history/${n}.png" alt=""></div>`
-    )).join("");
-  }
-})();
+  // top profile button -> profile page
+  document.getElementById("profileButton").addEventListener("click", () => {
+    showPage("profilePage");
+  });
+
+  // set min deposit text from server env (for demo we read default)
+  const min = parseFloat((window.MIN_DEPOSIT || 0.1));
+  document.getElementById("minDepositText").textContent = String(min);
+});
