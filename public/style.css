@@ -1,926 +1,476 @@
+/* ==========================================================================
+   Wild Time — Telegram-styled CSS
+   Адаптируется под тему Telegram WebApp через CSS-переменные.
+   ========================================================================== */
 
-      /*============================================
-              THEME & RESET 
-      ============================================*/
-      :root{
-        --bg:#0b0d10;
-        --bg-2:#0f141c;
-        --panel:#121823;
-        --card:#141c2a;
-        --border:#253247;
-        --text:#e7edf7;
-        --muted:#99a7bb;
-        --accent:#00a6ff;
-        --accent-ghost:rgba(0,166,255,.14);
-        --danger:#ff4d4f;
-        --ok:#27c93f;
-      }
+/* ---------- БАЗОВЫЕ ПЕРЕМЕННЫЕ (с fallback'ами для браузера вне Telegram) --- */
+:root {
+  /* Telegram WebApp theme params:
+     --tg-theme-bg-color
+     --tg-theme-text-color
+     --tg-theme-hint-color
+     --tg-theme-link-color
+     --tg-theme-button-color
+     --tg-theme-button-text-color
+     --tg-theme-secondary-bg-color
+     --tg-color-scheme (light|dark)
+  */
 
-      *{ box-sizing:border-box; }
-      html,body{ height:100%; margin:0; }
-      body{
-        background:
-          radial-gradient(1200px 600px at 50% -220px, #152033 0%, var(--bg) 55%),
-          linear-gradient(180deg, var(--bg-2), var(--bg));
-        color:var(--text);
-        font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-        -webkit-font-smoothing:antialiased;
-        -moz-osx-font-smoothing:grayscale;
-      }
+  /* Base */
+  --bg: var(--tg-theme-bg-color, #0e1621);
+  --bg-2: var(--tg-theme-secondary-bg-color, #0b111a);
+  --text: var(--tg-theme-text-color, #e7edf7);
+  --muted: var(--tg-theme-hint-color, #7b8a9a);
+  --link: var(--tg-theme-link-color, #62a0ff);
 
-      @font-face{
-        font-family:'mf';
-        src:url('/fonts/mf.woff2') format('woff2'),
-            url('/fonts/mf.woff') format('woff');
-        font-weight:400; font-style:normal; font-display:swap;
-      }
-      body{ font-family:'mf', system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; }
+  /* Accents */
+  --accent: var(--tg-theme-button-color, #2ea6ff);
+  --accent-text: var(--tg-theme-button-text-color, #0b111a);
 
-      img{ 
-        display:block; 
-        max-width:100%; 
-      }
-     
-     
-      button{ 
-        font:inherit; 
-        color:inherit; 
-        background:none; 
-        border:none;
-         padding:0; 
-         cursor:pointer;
-         }
-     
-         :focus-visible{ 
-          outline:2px solid var(--accent); 
-          outline-offset:2px; 
-        }
-     
-        /* APP WRAPPER*/
-        .app{
-          max-width: 430px;
-          margin: 0 auto;
-          min-height: 100dvh;
-          padding-bottom: 90px; /* bottom nav */
-          position:relative;
-        }
-        
-        
-        /* user pill sizes match TON pill */
-        .pill.pill--user { justify-self: start; }
-        .pill-avatar { width:22px; height:22px; border-radius:50%; object-fit:cover; }
-        .pill-username { max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
+  /* Surfaces & lines */
+  --surface: rgba(255,255,255,.04);
+  --surface-2: rgba(255,255,255,.06);
+  --line: rgba(255,255,255,.08);
+  --shadow: 0 8px 24px rgba(0,0,0,.35);
 
-        /* profile page bits (если нет) */
-        .profile-card { padding:12px; }
-        .profile-header { display:flex; align-items:center; gap:10px; background:#141b26; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px; }
-        .profile-header .avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; }
-        .profile-header .name { font-size:16px; font-weight:800; }
-        .profile-header .sub { color:#8da1b8; font-size:12px; }
-        .profile-action { width:100%; height:40px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:#10151d; color:#e9eef6; }
+  /* Sizes */
+  --radius: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --pad: 12px;
+  --pad-lg: 16px;
+  --nav-h: 64px;
+  --topbar-h: 64px;
 
-        /* TOP BAR: LOGO + TON pill 
-        ============================*/
-      .topbar{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 10px 12px 6px;
-      }
-      .logo-wrap{
-        margin: 0 auto;
-      }
-      .app-logo{
-        height: 30px;
-        width: auto;
-        filter: drop-shadow(0 2px 10px rgba(0, 0, 0, .45));
-      }
+  /* Misc */
+  --good: #20d68f;
+  --warn: #ffcf5a;
+  --bad: #ff6b6b;
 
-      /* RIGHT BALANCE PILL */
-      .balance{
-        position: absolute;
-        right: 10px;
-        top: 8px;   
-      }
-      .pill{
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        padding: 6px 10px;
-        border-radius: 999px;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-        transition: background .15s ease, border-color .15s ease, transform .12s ease;
-      }
-      .pill:hover{
-        background: #162031;
-        border-color: #2a3a54;
-        transform: translateY(-1px);
-      }
-      .pill-icon{
-        width:16px; 
-        height:16px; 
-        }
-      .pill-plus{ 
-        margin-left:2px; 
-        font-weight:900; 
-      }
-      .pill-plus,
-      .pill-plus-icon{
-        width:16px; 
-        height:16px;
-        }
-      #tonAmount{ 
-    font-weight:800;
-     font-size:13px; 
-     letter-spacing:.2px;
-     }
-
-    /* ===========================
-          HISTORY STRIP
-    =========================== */
-    .history{
-      padding: 6px 8px;
-    }
-    .history-list{
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding: 6px 2px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-    }
-    .history-list::-webkit-scrollbar{ 
-      height:6px; 
-    }
-    .history-list::-webkit-scrollbar-thumb{
-       background:var(--border);
-        border-radius:6px;
-       }
-    .history-icon{
-      width:26px; 
-      height:26px; 
-      flex:0 0 auto; 
-      border-radius:8px;
-      background:var(--card); 
-      border:1px solid var(--border);
-      padding:4px;
-    }
-    
-    
-    /* ===========================
-                WHEEL
-   =========================== */
-   .wheel{
-    position: relative;
-    display:flex; 
-    justify-content:center; 
-    align-items:center; 
-    padding:8px 10px 12px; 
-  }
-    #wheelCanvas{
-      display:block;
-      width:min(92vw, 420px); 
-      height:auto;
-      margin:0 auto; 
-      border-radius:50%;
-      background:radial-gradient(circle at 50% 40%, #182234 0%, #101723 58%, #0d131c 100%);
-      border:1px solid var(--border);
-      box-shadow:
-        0 16px 40px rgba(0,0,0,.55),
-        inset 0 0 40px rgba(0,0,0,.35),
-        0 0 18px rgba(0,166,255,.15);
-    }
-
-    /* Pointer */
-    .pointer, .wheel-pointer{
-      position:absolute; 
-      top:4px; 
-      left:50%; 
-      transform:translateX(-50%);
-      font-size:20px; color:var(--accent);
-      text-shadow:0 0 10px rgba(0,166,255,.8), 0 0 18px rgba(0,166,255,.45);
-    }
-
-    /* COUNTDOWN under wheel */
-    .countdown{
-      position:absolute; 
-      bottom:8px; 
-      left:50%; 
-      transform:translateX(-50%);
-    }
-    .countdown-num, #countNum{
-      display:inline-block; min-width:42px; text-align:center;
-      font-weight:900; font-size:18px; letter-spacing:.5px;
-      padding:6px 10px; border-radius:999px;
-      background:var(--accent-ghost); color:var(--text); border:1px solid var(--border);
-      box-shadow: 0 6px 18px rgba(0,166,255,.25);
-    }
-    .countdown.pulse .countdown-num{ 
-      animation:pulse .8s infinite; 
-    }
-    @keyframes pulse{ 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} 
-  }
-  
-  
-  
-  
-  /* ===========================
-              BET PANEL
-     =========================== */
-     .bet-overlay{
-       position:relative; 
-       padding:6px 10px 14px; 
-       transition: transform .4s ease, opacity .4s ease; 
-      }
-     .app.is-spinning .bet-overlay{ 
-      transform: translateY(18px); 
-      opacity:.55; 
-    }
-    
-    
-    
-    /* AMOUNT CHIPS (SVG) */
-    .bet-amounts{
-      display:flex; justify-content:center; gap:10px;
-      padding:6px 6px 10px;
-    }
-    .amount-btn{
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:8px;
-      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-    }
-    .amount-btn img{ 
-      width:36px; 
-      height:36px; 
-    }
-    .amount-btn:active{ 
-      transform: translateY(1px); 
-    }
-    .amount-btn.active{ 
-      border-color: rgba(0,166,255,.6); 
-      box-shadow:0 0 0 3px var(--accent-ghost); 
-    }
-        
-    
-    
-              /* Actions */
-    .bet-actions{
-      display:flex; 
-      justify-content:center; 
-      gap:12px; 
-      padding:0 6px 8px;
-    }
-    .action-btn{
-      background:var(--panel); 
-      border:1px solid var(--border);
-      padding:10px; 
-      border-radius:12px;
-      transition: transform .12s ease, background .15s;
-    }
-    .action-btn:hover{ 
-      background:#162031; 
-    }
-    .action-btn:active{ 
-      transform: translateY(1px); 
-    }
-    .action-btn img{ 
-      width:20px; 
-      height:20px; 
-    }
-           
-    
-    
-    
-                    /* Bet grid (tickets) */
-        .bet-grid{
-          display:grid; 
-          grid-template-columns:1fr 1fr; 
-          gap:10px;
-          padding:4px 4px 0;
-        }
-        .bet-tile{
-          position:relative;
-          background:var(--card); 
-          border:1px solid var(--border);
-          border-radius:16px; 
-          padding:10px;
-          transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
-        }
-        .bet-tile img{ 
-          width:100%; 
-          height:auto; 
-          border-radius:12px; 
-        }
-        .bet-tile:active{ 
-          transform: translateY(1px); 
-        }
-        .bet-tile.wide{ 
-          grid-column:span 2; 
-        }
-        .bet-tile.muted{ 
-          filter:saturate(.6) brightness(.9); 
-        } /* числовые не такие яркие */
-        .bet-tile.bonus{ 
-          filter:none; 
-          box-shadow: 0 0 0 0 rgba(0,0,0,0); 
-        }
-
-       
-        /* Badge with placed amount count (optional) */
-      .bet-badge{
-        position:absolute; 
-        top:8px; 
-        right:8px;
-        background:var(--accent); 
-        color:#001018; 
-        font-weight:900; 
-        font-size:12px;
-        padding:4px 7px; 
-        border-radius:999px; 
-        box-shadow:0 6px 16px rgba(0,166,255,.25);
-      }
-      
-      
-      /* During spin: non-bet tiles fade, bet tiles stay visible (JS will toggle .has-bet) */
-      .app.is-spinning .bet-tile{ opacity:.45; 
-      }
-      .app.is-spinning .bet-tile.has-bet{
-        opacity:1; 
-        box-shadow:0 0 0 2px var(--accent-ghost), 0 8px 18px rgba(0,0,0,.25);
-      }
-
-
-
-
-
-
-
-
-
-
-
-
-              /* ===========================
-                       OTHER PAGES
-              =========================== */
-        .page{ 
-          display:none; 
-        }
-        .page-active, .page.page-active{ 
-          display:block; 
-        }
-        .coming{
-          margin:18px; 
-          padding:16px; 
-          text-align:center;
-          background:var(--panel); 
-          border:1px solid var(--border); 
-          border-radius:14px; 
-          color:var(--muted);
-        }
-        
-        
-        
-        
-        
-        
-        /* ===== CASES PAGE ===== */
-          .cases-section {
-            padding: 20px;
-            color: #fff;
-            overflow-y: auto;
-          }
-
-          .cases-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #00aaff; /* голубой заголовок */
-            text-align: center;
-          }
-
-          .cases-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 16px;
-          }
-
-          .case-card {
-            background: #1c1c1c;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #bbb;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            cursor: pointer;
-          }
-
-          .case-card:hover {
-            background: #252525;
-            transform: translateY(-3px);
-            box-shadow: 0 0 15px rgba(0,170,255,0.3);
-            color: #fff;
-          }
-
-
-
-
-
-    /* === PROFILE PAGE === */
-.profile-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #161a22;
-  border-radius: 16px;
-  padding: 20px;
-  margin: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  /* Typography */
+  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
 }
 
-.profile-ava {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+/* ---------- RESET / BASE --------------------------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
 }
 
-.profile-name {
-  margin: 12px 0 2px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.profile-handle {
+body {
   margin: 0;
-  color: #9aa7bd;
-  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Кнопка кошелька */
-.wallet-pill {
-  display: flex;
+img, canvas { display: block; max-width: 100%; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- APP LAYOUT ----------------------------------------------------- */
+.app {
+  min-height: 100dvh;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--nav-h));
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  height: calc(env(safe-area-inset-top, 0px) + var(--topbar-h));
+  padding: calc(env(safe-area-inset-top, 0px)) var(--pad);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
+  gap: var(--pad);
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+  z-index: 20;
+}
+
+.logo-wrap {
+  display: grid;
+  place-items: center;
+}
+.app-logo { height: 32px; opacity: .95; }
+
+/* ---------- PILLS (user / ton) -------------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  min-height: 40px;
+  transition: transform .12s ease, background .2s ease, border-color .2s ease;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.04);
+}
+
+.pill:hover { background: var(--surface-2); }
+.pill:active { transform: translateY(1px); }
+
+.pill--user {
+  justify-self: start;
+  max-width: 100%;
+}
+.pill-avatar {
+  width: 28px; height: 28px; border-radius: 999px;
+  background: #132233;
+  border: 1px solid var(--line);
+}
+.pill-username {
+  font-weight: 600; font-size: 14px; line-height: 1;
+  max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.pill--ton { justify-self: end; }
+.pill-icon, .pill-plus-icon { width: 18px; height: 18px; }
+#tonAmount { font-weight: 700; }
+
+/* ---------- HISTORY -------------------------------------------------------- */
+.history {
+  padding: 8px var(--pad);
+}
+.history-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 48px;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+.history-list::-webkit-scrollbar { display: none; }
+.history-item {
+  height: 40px; width: 48px;
+  display: grid; place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+/* ---------- PAGES ---------------------------------------------------------- */
+.page { display: none; padding: 8px var(--pad) 12px; }
+.page-active { display: block; }
+
+/* ---------- WHEEL ---------------------------------------------------------- */
+.wheel {
+  position: relative;
+  margin: 8px auto 12px;
+  width: min(92vw, 440px);
+}
+#wheelCanvas {
+  width: 100%; height: auto;
+  background: radial-gradient(120% 120% at 50% 40%, #142235 0%, #0c1521 60%, #0a111a 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.pointer {
+  position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
+  font-size: 18px; opacity: .9;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+.countdown {
+  position: absolute; inset: auto 0 -12px 0;
+  margin: auto; width: max-content;
+  display: grid; place-items: center;
+  background: #0d1a2a;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #e7edf7;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+.countdown-num { font-weight: 800; letter-spacing: .5px; }
+
+.pulse { animation: pulse .45s ease; }
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: none; }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(46,166,255,.1); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+
+/* ---------- BET OVERLAY ---------------------------------------------------- */
+.bet-overlay {
+  display: grid;
+  gap: 12px;
   margin-top: 16px;
-  width: 100%;
-  max-width: 280px;
 }
 
-.wallet-pill .icon-16 {
-  width: 18px;
-  height: 18px;
+/* controls */
+.bet-controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
 }
-
-.wallet-pill .chev {
-  width: 18px;
-  height: 18px;
-  fill: rgba(255, 255, 255, 0.3);
+.bet-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
-
-.wallet-details {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: center;
-  color: #9aa7bd;
+.amount-btn {
+  display: grid; place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 10px;
+  transition: transform .12s ease, background .2s ease, border-color .2s ease;
 }
+.amount-btn:hover { background: var(--surface-2); }
+.amount-btn:active { transform: translateY(1px); }
 
-.wallet-full {
-  margin-bottom: 10px;
-  word-break: break-all;
-  color: #e7edf7;
+.bet-actions {
+  display: grid; grid-auto-flow: column; gap: 8px; align-content: stretch;
 }
+.action-btn {
+  display: grid; place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  width: 44px; height: 44px;
+  transition: transform .12s ease, background .2s ease, border-color .2s ease;
+}
+.action-btn:hover { background: var(--surface-2); }
+.action-btn:active { transform: translateY(1px); }
 
-.wallet-details .row {
-  display: flex;
-  justify-content: center;
+/* grid of segments */
+.bet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
+.bet-tile {
+  position: relative;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-height: 74px;
+  transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.bet-tile:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.28); }
+.bet-tile:active { transform: translateY(0); }
 
+.bet-tile.muted { opacity: .92; }
+.bet-tile.bonus { background: linear-gradient(180deg, rgba(46,166,255,.14), rgba(0,0,0,.06)); }
+.bet-tile.wide { grid-column: 1 / -1; min-height: 86px; }
+
+.bet-img { width: 100%; height: auto; object-fit: contain; max-height: 54px; opacity: .96; }
+.bet-badge {
+  position: absolute; right: 8px; top: 8px;
+  padding: 2px 6px; font-size: 12px; font-weight: 700;
+  background: rgba(46,166,255,.18);
+  border: 1px solid rgba(46,166,255,.28);
+  border-radius: 999px;
+}
+
+/* ---------- CASES / INVENTORY --------------------------------------------- */
+.cases-grid, .inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.case-card, .inv-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: grid; gap: 8px; place-items: center;
+  transition: transform .12s ease, background .2s ease;
+}
+.case-card:hover, .inv-card:hover { background: var(--surface-2); transform: translateY(-1px); }
+
+.case-img, .inv-img { width: 100%; max-height: 120px; object-fit: contain; }
+.case-title, .inv-title { font-weight: 600; color: var(--text); opacity: .95; }
+
+/* ---------- PROFILE -------------------------------------------------------- */
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: grid; gap: 12px; justify-items: center;
+  box-shadow: var(--shadow);
+}
+.profile-ava {
+  width: 96px; height: 96px; border-radius: 999px;
+  background: #132233;
+  border: 1px solid var(--line);
+}
+.profile-name { margin: 0; font-size: 18px; font-weight: 800; }
+.profile-handle { margin: 0; color: var(--muted); }
+
+.wallet-pill {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid; grid-auto-flow: column; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.wallet-pill:hover { background: var(--surface-2); }
+.icon-16 { width: 16px; height: 16px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+.wallet-details {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid; gap: 10px;
+}
+.wallet-details .row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+
+/* ---------- BUTTONS -------------------------------------------------------- */
 .btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-weight: 600;
-  padding: 8px 16px;
+  display: inline-grid; place-items: center;
+  height: 40px; padding: 0 12px;
+  border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  transition: transform .12s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: rgba(255,255,255,.12);
+}
+.btn--primary:hover { filter: brightness(1.05); }
+.btn--ghost {
+  background: transparent; border-color: var(--line);
+}
+.btn-danger { background: #2a1012; border-color: rgba(255,107,107,.35); color: #ff9b9b; }
+.btn-danger:hover { background: #361416; }
+
+/* ---------- BOTTOM SHEET (DEPOSIT) ---------------------------------------- */
+.sheet {
+  position: fixed; inset: 0;
+  display: grid; place-items: end center;
+  pointer-events: none; opacity: 0;
+  transition: opacity .22s ease;
+  z-index: 50;
+}
+.sheet--open { pointer-events: auto; opacity: 1; }
+.sheet__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+}
+.sheet__panel {
+  position: relative;
+  width: min(760px, 100%);
+  background: var(--bg-2);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  border: 1px solid var(--line);
+  box-shadow: 0 -20px 40px rgba(0,0,0,.35);
+  transform: translateY(12px);
+  transition: transform .26s ease, opacity .26s ease;
+  padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  opacity: .98;
+}
+.sheet--open .sheet__panel { transform: translateY(0); }
+
+.sheet__handle {
+  width: 36px; height: 4px; border-radius: 999px;
+  background: var(--line);
+  margin: 6px auto 8px;
+}
+.sheet__close {
+  position: absolute; right: 10px; top: 6px;
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center;
+  color: var(--muted);
+  background: transparent; border: 1px solid transparent;
+}
+.sheet__close:hover { background: var(--surface); border-color: var(--line); }
+.sheet__title { margin: 4px 0 2px; font-size: 18px; font-weight: 800; }
+.sheet__sub { margin: 2px 0; color: var(--muted); }
+.sheet__sub--muted { opacity: .9; }
+
+.dep-input {
+  margin-top: 10px; display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px; padding: 10px 12px;
+}
+.dep-input input {
+  background: transparent; border: 0; outline: none; color: var(--text);
+  font-weight: 700; font-size: 16px; width: 100%;
+}
+.dep-hint { margin-top: 6px; color: var(--muted); font-size: 13px; }
+.dep-actions { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---------- BOTTOM NAV ----------------------------------------------------- */
+.bottom-nav {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: calc(env(safe-area-inset-bottom, 0px) + var(--nav-h));
+  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.36) 12%, rgba(0,0,0,.6) 100%), var(--bg);
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px; padding: 8px var(--pad) calc(env(safe-area-inset-bottom, 0px) + 8px);
+  border-top: 1px solid var(--line);
+  z-index: 30;
+}
+.nav-item {
+  display: grid; grid-template-rows: 1fr auto; place-items: center;
+  gap: 4px; min-height: 48px;
+  border-radius: 12px;
+  color: var(--muted);
+  transition: background .2s ease, color .2s ease, transform .12s ease;
+}
+.nav-item:hover { background: var(--surface); }
+.nav-item:active { transform: translateY(1px); }
+.nav-item.active { color: var(--text); background: var(--surface); border: 1px solid var(--line); }
+.nav-icon { width: 22px; height: 22px; opacity: .96; }
+.nav-label { font-size: 12px; font-weight: 700; letter-spacing: .2px; }
+
+/* ---------- STATES --------------------------------------------------------- */
+.is-spinning #wheelCanvas { filter: saturate(1.05) contrast(1.02); }
+
+/* ---------- LIGHT THEME TWEAKS -------------------------------------------- */
+@media (prefers-color-scheme: light) {
+  :root {
+    --shadow: 0 10px 24px rgba(0,0,0,.12);
+    --surface: rgba(0,0,0,.04);
+    --surface-2: rgba(0,0,0,.06);
+    --line: rgba(0,0,0,.08);
+  }
 }
 
-.btn-danger {
-  background: rgba(255, 50, 50, 0.2);
-  border: 1px solid rgba(255, 50, 50, 0.3);
+/* ---------- REDUCED MOTION ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
-
-
-
-
-
-                  /* ===========================
-                          BOTTOM NAV
-                  =========================== */
-       
-                .bottom-nav {
-                    position: fixed;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    display: flex;
-                    justify-content: space-around;
-                    align-items: center;
-                    background: rgba(20, 20, 20, 0.85);
-                    backdrop-filter: blur(10px);
-                    border-top: 1px solid rgba(255, 255, 255, 0.05);
-                    border-radius: 20px 20px 0 0; /* ← сглаженные верхние углы */
-                    height: 60px;
-                    z-index: 50; /* понижаем немного, чтобы не перекрывала модалки */
-                  }
-                  
-
-            /* кнопки */
-            .nav-item {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 2px;
-              color: #97a7bf;
-              background: transparent;
-              border: none;
-              padding: 4px 6px;
-              border-radius: 10px;
-              font-size: 10px; /* подпись меньше */
-              cursor: pointer;
-              -webkit-tap-highlight-color: transparent;
-              transition: background 0.18s ease, color 0.18s ease, transform 0.1s ease;
-            }
-
-            .nav-item:active {
-              transform: translateY(1px);
-            }
-
-            .nav-item.active {
-              color: var(--accent);
-              background: rgba(0, 166, 255, 0.1);
-              box-shadow: inset 0 0 0 1px rgba(0, 166, 255, 0.22);
-            }
-
-            /* иконки — поменьше */
-            .nav-icon {
-              width: 20px;
-              height: 20px;
-            }
-
-            .nav-label {
-              font-size: 10px;
-              letter-spacing: .2px;
-            }
-            /* базовое состояние */
-          .bottom-nav .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: transparent;     /* убираем фон */
-            border: none;                /* убираем рамку */
-            border-radius: 0;            /* убираем округления */
-            padding: 6px 4px;
-            flex: 1;
-            color: #999;                 /* серый текст */
-            font-size: 12px;
-            transition: color 0.2s ease;
-          }
-
-          /* иконки внутри */
-          .bottom-nav .nav-item .nav-icon {
-            width: 22px;
-            height: 22px;
-            margin-bottom: 4px;
-            filter: none;                 /* убираем фильтры */
-            transition: filter 0.2s ease, fill 0.2s ease;
-          }
-
-          /* активное состояние — только цвет */
-          .bottom-nav .nav-item.active {
-            background: transparent;     /* не подсвечиваем фон */
-            box-shadow: none;            /* убираем тень */
-            color: #00aaff;              /* голубой текст */
-          }
-
-          .bottom-nav .nav-item.active .nav-icon {
-            filter: drop-shadow(0 0 3px rgba(0,170,255,0.6));
-            /* если svg — можно заменить цвет прямо */
-            fill: #00aaff;
-          }
-
-
-
-              /* ===========================
-                  UTILITIES & ADAPTIVE
-              =========================== */
-      .hidden{ 
-        display:none !important; 
-      }
-      .center{ 
-        display:grid; 
-        place-items:center; 
-      }
-      .text-muted{ 
-        color:var(--muted); 
-      }
-
-      @media (max-width:420px){
-        .app{ 
-          padding-bottom: 94px; 
-        }
-        .amount-btn img{ 
-          width:34px; 
-          height:34px; 
-        }
-        .pill{ 
-          padding:6px 9px; 
-        }
-        #wheelCanvas{ 
-          width:92vw; 
-        }
-      }
-
-      .wheel { position: relative; 
-      }
-      
-      
-      
-      /* колесо — мягкий свет */
-      #wheelCanvas{
-        box-shadow:
-          0 16px 40px rgba(0,0,0,.55),
-          inset 0 0 40px rgba(0,0,0,.35),
-          0 0 18px rgba(0,166,255,.15);
-        border: 1px solid var(--border);
-      }
-
-      /* ставки — плавная “полупрозрачность” в режиме вращения (ты уже это используешь через .app.is-spinning) */
-      .app.is-spinning .bet-overlay{
-        transform: translateY(14px);
-        opacity: .6;
-      }
-
-      /* сетка кейсов — чуть плотнее на маленьких экранах */
-      @media (max-width: 380px){
-        .cases-grid{ grid-template-columns: repeat(2, 1fr); }
-        .case-card{ height: 108px; }
-      }
-
-            
-      
-      
-      
-      
-      
-                                      /* === Deposit Bottom Sheet (scoped) === */
-            .sheet{
-              position:fixed; inset:0; z-index:3000;   /* было 10000: слишком высоко */
-              pointer-events:none;
-            }
-            .sheet__backdrop{
-              position:absolute; inset:0;
-              background:rgba(0,0,0,.35);
-              opacity:0; transition:opacity .2s ease;
-            }
-            .sheet__panel{
-              position:absolute; left:50%; bottom:0;
-              transform:translate(-50%, 100%);
-              width:100%; max-width:430px;
-
-              background:#161a22;
-              border-top-left-radius:18px; border-top-right-radius:18px;
-              border:1px solid rgba(255,255,255,.08); border-bottom:none;
-              padding:16px 16px calc(env(safe-area-inset-bottom) + 16px);
-              box-shadow:0 -20px 60px rgba(0,0,0,.6);
-              transition:transform .26s ease;
-              color:#e7edf7;
-            }
-            .sheet__handle{ width:56px; height:5px; margin:4px auto 10px; border-radius:999px; background:rgba(255,255,255,.18); }
-            .sheet__title{ margin:4px 0 2px; font-size:20px; font-weight:800; text-align:center; }
-            .sheet__sub{ margin:0; text-align:center; }
-            .sheet__sub--muted{ color:#9aa7bd; }
-            .sheet__close{
-              position:absolute; right:10px; top:10px; width:28px; height:28px; border-radius:8px;
-              background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#e7edf7;
-            }
-
-            /* open */
-            .sheet.sheet--open{ pointer-events:auto; }
-            .sheet.sheet--open .sheet__backdrop{ opacity:1; }
-            .sheet.sheet--open .sheet__panel{ transform:translate(-50%, 0); }
-
-            /* Input */
-            .dep-input{
-              display:flex; align-items:center; gap:10px; background:#0f131a;
-              border:1px solid rgba(255,255,255,.1); padding:12px; border-radius:14px; margin:14px 0 8px;
-            }
-            .dep-input__icon{ width:18px; height:18px; opacity:.9; }
-            .dep-input input{
-              width:100%; background:transparent; border:none; color:#e7edf7; font-size:16px; outline:none;
-            }
-            .dep-hint{ font-size:12px; color:#9aa7bd; margin-bottom:10px; }
-
-            /* Buttons */
-            .dep-actions{ display:flex; gap:10px; 
-            }
-            .dep-actions.single { justify-content: center; }
-            .dep-actions.single .btn--primary { flex: 0; width: 100%; max-width: 320px; }
-
-            .btn{
-              display:flex; align-items:center; justify-content:center; gap:10px;
-              flex:1; padding:12px; border-radius:12px; font-weight:800; border:1px solid transparent; color:#e7edf7;
-            }
-            .btn__icons img{ width:18px; height:18px; object-fit:contain; filter:drop-shadow(0 0 6px rgba(0,166,255,.25)); }
-            .btn--ghost{ background:transparent; border-color:rgba(255,255,255,.2); }
-            .btn--primary{ background:#0d68c3; color:#fff; border-color:#0d68c3; box-shadow:0 6px 16px rgba(13,104,195,.35); }
-            .btn[disabled]{ opacity:.5; filter:saturate(.6); pointer-events:none; }
-
-            /* --- навигация ниже, чтобы модалки были над ней --- */
-            .bottom-nav{ z-index: 1500; }
-
-           /* 3) TonConnect modal: ловим все варианты контейнера на разных версиях библиотеки */
-            body > div[id*="ton-connect"],
-            body > div[class*="ton-connect"],
-            body > div[class*="TonConnect"],
-            .tc-modal,
-            [data-tc-modal],
-            #tc-modal-root,
-            #ton-connect-ui__modal,
-            .ton-connect-modal,
-            div[id^="ton-connect-ui"],
-            div[class*="tonconnect"] {
-              position: fixed !important;
-              inset: 0 !important;
-              z-index: 2147483647 !important; /* самый верхний возможный безопасный уровень */
-              pointer-events: auto !important;
-            }
-
-            /* Когда открыт TON Connect — блюрим/блокируем фон */
-            body.tonc-open .sheet,
-            body.tonc-open .bottom-nav{
-              filter:blur(4px) brightness(.7);
-              pointer-events:none;
-            }
-
-            /* (если у тебя где-то использовалось) */
-            .deposit-popup{ z-index: 3000 !important; }  /* вровень с .sheet */
-
-          
-          
-
-
-
-
-
-                    /* ===== Topbar layout: left pill — center logo — right pill ===== */
-          .topbar {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr; /* left | center | right */
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-          }
-
-          /* Центрируем лого (если есть .logo-wrap) */
-          .topbar .logo-wrap { justify-self: center; }
-
-          /* Правую пилюлю прижимаем вправо (твоя TON-пилюля) */
-          .topbar .balance { justify-self: end; }
-
-          /* ===== Профиль-пилюля (левая) ===== */
-          /* Если у тебя .pill уже есть — этот блок можно не дублировать.
-            Он задан нейтрально и не должен конфликтовать. */
-          .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            height: 36px;                 /* фиксируем высоту, чтобы совпало с TON-пилюлей */
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: #0e1a26;
-            border: 1px solid rgba(255,255,255,.12);
-            color: #fff;
-            line-height: 1;
-            transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
-            -webkit-tap-highlight-color: transparent;
-          }
-          .pill:active { transform: translateY(1px); }
-
-          .pill--user {
-            justify-self: start;           /* левый край сетки */
-            cursor: pointer;
-            background: #0f1620;           /* слегка темнее для отличия */
-          }
-          .pill--user:hover {
-            box-shadow: 0 0 0 1px rgba(0,153,255,.35) inset, 0 4px 16px rgba(0,153,255,.15);
-          }
-          .pill--user:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0,153,255,.5) inset;
-          }
-
-          /* Аватарка внутри пилюли */
-          .pill-avatar {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex: 0 0 22px;
-            box-shadow: 0 0 0 1px rgba(255,255,255,.08);
-          }
-
-          /* Имя пользователя. Обрезаем, чтобы не ломало ширину */
-          .pill-username {
-            max-width: 120px;              /* при необходимости подгони */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-weight: 600;
-            font-size: 14px;
-            opacity: .95;
-          }
-
-          /* Поддержка тёмной темы (если используешь переменные) */
-          :root {
-            --wt-blue: #0d68c3;
-          }
-          .pill--user:hover .pill-username { opacity: 1; }
-
-          /* Адаптив: на очень узких экранах слегка уменьшаем */
-          @media (max-width: 360px) {
-            .pill { height: 34px; padding: 6px 10px; }
-            .pill-avatar { width: 20px; height: 20px; }
-            .pill-username { max-width: 92px; font-size: 13px; }
-          }
-
-
-          
-          
-          /* Таймер — по центру снизу колеса, яркий */
-            #countdown {
-              position: absolute;
-              left: 50%;
-              bottom: -10px;                 /* подвинь если нужно ближе/дальше от колеса */
-              transform: translateX(-50%);
-              z-index: 5;
-              padding: 6px 12px;
-              border-radius: 999px;
-              background: rgba(0, 17, 34, 0.75);
-              backdrop-filter: blur(6px);
-              border: 1px solid rgba(0,153,255,.35);
-              box-shadow: 0 6px 24px rgba(0,153,255,.25), inset 0 0 0 1px rgba(255,255,255,.06);
-              color: #eaf6ff;
-              font: 700 clamp(16px, 4.2vw, 24px) / 1.1 mf, system-ui, sans-serif;
-              letter-spacing: .02em;
-              opacity: 1;
-              transition: transform .2s ease, opacity .2s ease;
-            }
-
-            /* лёгкий «пульс», когда уменьшается число */
-              #countdown.pulse {
-                animation: countPulse .45s ease;
-              }
-              @keyframes countPulse {
-                0%   { transform: translateX(-50%) scale(1); }
-                50%  { transform: translateX(-50%) scale(1.12); }
-                100% { transform: translateX(-50%) scale(1); }
-              }
-
-
-
-              /* бет-панель во время спина */
-      #betOverlay.disabled {
-        pointer-events: none;
-        filter: saturate(.85);
-      }
-
-      /* история кружочками/плашками — подгоняй под свой UI */
-      .history-item {
-        display:inline-flex; align-items:center; justify-content:center;
-        min-width:36px; height:28px; padding:0 8px; margin-right:6px;
-        border-radius:8px; color:#fff; font:600 12px/1 mf,system-ui,sans-serif;
-      }
-
-    

@@ -1,40 +1,71 @@
-// public/js/app.js
-document.addEventListener("DOMContentLoaded", () => {
-  // Tabs: wheel / profile
-  function showPage(id) {
-    document.querySelectorAll(".page").forEach(p => p.hidden = true);
-    const el = document.getElementById(id);
-    if (el) el.hidden = false;
-    document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
-    document.querySelector(`[data-target="${id}"]`)?.classList.add("active");
+// app.js — УСИЛЕННЫЙ: делегирование событий + защита от оверлеев
+(() => {
+  "use strict";
+
+  // utils
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const url = (p) => new URL(p, location.href).toString();
+  window.__wtUtil = { $, $$, url };
+
+  // показать страницу
+  function showPage(id){
+    $$(".page").forEach(p => p.classList.remove("page-active"));
+    $("#"+id)?.classList.add("page-active");
+    $$(".bottom-nav .nav-item").forEach(b => b.classList.toggle("active", b.dataset.target === id));
   }
 
-  document.querySelectorAll(".nav-item").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const t = btn.dataset.target;
-      showPage(t);
-    });
-  });
+  // Делегируем клики на весь документ (и touchstart)
+  function onTap(e){
+    const target = e.target.closest?.(".bottom-nav .nav-item, #userPill, [data-open-deposit], #depClose, .sheet__backdrop");
+    if (!target) return;
 
-  // Deposit sheet toggle (open)
-  const depositSheet = document.getElementById("depositSheet");
-  const tonPill = document.getElementById("tonPill");
-  const depositOpenButtons = document.querySelectorAll("[data-open-deposit]");
-  depositOpenButtons.forEach(b => b.addEventListener("click", () => {
-    depositSheet.setAttribute("aria-hidden", "false");
-    document.getElementById("depAmount").focus();
-  }));
-  // close sheet by clicking backdrop
-  document.querySelectorAll(".sheet-backdrop").forEach(back => back.addEventListener("click", () => {
-    depositSheet.setAttribute("aria-hidden", "true");
-  }));
+    // если поверх открыт шит, пропускаем только его кнопки
+    const sheetOpen = $("#depositSheet")?.classList.contains("sheet--open");
+    if (sheetOpen && !target.closest("#depositSheet")) {
+      e.preventDefault(); e.stopPropagation(); return;
+    }
 
-  // top profile button -> profile page
-  document.getElementById("profileButton").addEventListener("click", () => {
-    showPage("profilePage");
-  });
+    if (target.matches(".bottom-nav .nav-item")){
+      const id = target.dataset.target;
+      if (id) { e.preventDefault(); showPage(id); }
+    }
+    else if (target.matches("#userPill")){
+      e.preventDefault(); showPage("profilePage");
+    }
+    else if (target.matches("[data-open-deposit]")){
+      e.preventDefault();
+      $("#depositSheet")?.classList.add("sheet--open");
+      $("#depositSheet")?.setAttribute("aria-hidden","false");
+    }
+    else if (target.matches("#depClose, .sheet__backdrop")){
+      e.preventDefault();
+      $("#depositSheet")?.classList.remove("sheet--open");
+      $("#depositSheet")?.setAttribute("aria-hidden","true");
+    }
+  }
+  document.addEventListener("click", onTap, true);
+  document.addEventListener("touchstart", onTap, { passive: false, capture: true });
 
-  // set min deposit text from server env (for demo we read default)
-  const min = parseFloat((window.MIN_DEPOSIT || 0.1));
-  document.getElementById("minDepositText").textContent = String(min);
-});
+  // История — наполняем безопасно
+  const historyList = $("#historyList");
+  if (historyList) {
+    const names = ["1x_small","3x_small","7x_small","11x_small","loot_small","wild_small","5050_small"];
+    historyList.innerHTML = names.map(n => (
+      `<button type="button" class="history-item">
+         <img class="history-icon" src="${url(`images/history/${n}.png`)}" alt="">
+       </button>`
+    )).join("");
+  }
+
+  // «пульс» для таймера (wheel.js вызывает)
+  window.__wtPulse = (id = "countdown") => {
+    const el = $("#"+id);
+    if (!el) return;
+    el.classList.add("pulse");
+    setTimeout(() => el.classList.remove("pulse"), 250);
+  };
+
+  // Пинг для отладки
+  console.log("✅ app.js ready");
+})();
